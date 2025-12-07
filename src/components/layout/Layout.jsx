@@ -1,0 +1,145 @@
+import { useState, useEffect } from 'react';
+import { Outlet, Link, useLocation } from 'react-router-dom';
+import { 
+  LayoutDashboard, ShoppingBag, UtensilsCrossed, 
+  Armchair, Megaphone, Users, Settings, 
+  LogOut, Store, WifiOff, X
+} from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import clsx from 'clsx';
+import Header from './Header';
+
+const NAV_ITEMS = [
+  { name: 'Dashboard', href: '/', icon: LayoutDashboard },
+  { name: 'Orders', href: '/orders', icon: ShoppingBag },
+  { name: 'Menu', href: '/menu', icon: UtensilsCrossed },
+  { name: 'Tables', href: '/tables', icon: Armchair },
+  { name: 'Reservations', href: '/bookings', icon: Users }, // Changed icon context
+  { name: 'Marketing', href: '/marketing', icon: Megaphone },
+  { name: 'Fleet', href: '/fleet', icon: Users },
+  { name: 'Settings', href: '/settings', icon: Settings },
+];
+
+export default function Layout() {
+  const { logout } = useAuth();
+  const location = useLocation();
+  const [isSidebarOpen, setSidebarOpen] = useState(true);
+  const [isMobileOpen, setMobileOpen] = useState(false);
+  const [isMockMode, setIsMockMode] = useState(false);
+
+  useEffect(() => {
+    const handleMockEvent = () => setIsMockMode(true);
+    window.addEventListener('mock-mode-active', handleMockEvent);
+    return () => window.removeEventListener('mock-mode-active', handleMockEvent);
+  }, []);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [location.pathname]);
+
+  const SidebarContent = () => (
+    <>
+      <div className="h-24 flex items-center justify-center border-b border-gray-800/50">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-primary rounded-xl shrink-0">
+            <Store className="w-6 h-6 text-white" />
+          </div>
+          <span className={clsx("font-bold text-2xl tracking-tight text-white transition-opacity duration-300", 
+            !isSidebarOpen && "lg:opacity-0 lg:hidden"
+          )}>
+            Order<span className="text-primary">Now</span>
+          </span>
+        </div>
+      </div>
+
+      <nav className="flex-1 py-6 px-3 space-y-1 overflow-y-auto">
+        {NAV_ITEMS.map((item) => {
+          const isActive = location.pathname === item.href || (item.href !== '/' && location.pathname.startsWith(item.href));
+          return (
+            <Link
+              key={item.name}
+              to={item.href}
+              className={clsx(
+                "flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 group relative",
+                isActive 
+                  ? "bg-primary text-white shadow-lg shadow-primary/25" 
+                  : "text-gray-400 hover:bg-white/5 hover:text-white"
+              )}
+            >
+              <item.icon className={clsx("w-5 h-5 shrink-0", isActive && "animate-pulse")} />
+              <span className={clsx("font-medium whitespace-nowrap transition-all duration-300", 
+                !isSidebarOpen && "lg:hidden"
+              )}>
+                {item.name}
+              </span>
+            </Link>
+          );
+        })}
+      </nav>
+
+      <div className="p-4 border-t border-gray-800/50">
+        <button 
+          onClick={logout}
+          className="flex items-center gap-3 text-gray-400 hover:text-red-400 w-full px-3 py-3 rounded-xl hover:bg-white/5 transition-all group"
+        >
+          <LogOut className="w-5 h-5 shrink-0 group-hover:-translate-x-1 transition-transform" />
+          <span className={clsx("font-medium", !isSidebarOpen && "lg:hidden")}>Logout</span>
+        </button>
+      </div>
+    </>
+  );
+
+  return (
+    <div className="min-h-screen bg-cream flex flex-col">
+      {isMockMode && (
+        <div className="bg-red-600 text-white px-4 py-2 text-center text-xs font-bold flex items-center justify-center gap-2 sticky top-0 z-50">
+          <WifiOff className="w-3 h-3" />
+          <span>OFFLINE MODE - USING MOCK DATA</span>
+        </div>
+      )}
+
+      <div className="flex flex-1 overflow-hidden">
+        {/* Desktop Sidebar */}
+        <aside className={clsx(
+          "hidden lg:flex flex-col bg-dark text-white transition-all duration-300 ease-in-out z-30",
+          isSidebarOpen ? "w-64" : "w-20"
+        )}>
+          <SidebarContent />
+        </aside>
+
+        {/* Mobile Sidebar (Drawer) */}
+        <div className={clsx(
+          "fixed inset-0 z-40 lg:hidden transition-opacity duration-300",
+          isMobileOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        )}>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
+          <aside className={clsx(
+            "absolute left-0 top-0 bottom-0 w-64 bg-dark text-white flex flex-col transform transition-transform duration-300",
+            isMobileOpen ? "translate-x-0" : "-translate-x-full"
+          )}>
+            <button onClick={() => setMobileOpen(false)} className="absolute top-4 right-4 text-gray-400">
+              <X className="w-6 h-6" />
+            </button>
+            <SidebarContent />
+          </aside>
+        </div>
+
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col h-screen overflow-hidden">
+          <Header 
+            toggleSidebar={() => setSidebarOpen(!isSidebarOpen)} 
+            toggleMobileMenu={() => setMobileOpen(true)}
+            isSidebarOpen={isSidebarOpen} 
+          />
+          
+          <main className="flex-1 p-4 md:p-8 overflow-auto scroll-smooth">
+            <div className="max-w-7xl mx-auto animate-fade-in pb-20">
+              <Outlet />
+            </div>
+          </main>
+        </div>
+      </div>
+    </div>
+  );
+}
