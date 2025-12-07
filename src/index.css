@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -8,13 +8,13 @@
   body {
     @apply bg-cream text-dark antialiased font-sans;
   }
-  h1, h2, h3, h4 {
+  h1, h2, h3, h4, h5 {
     @apply font-bold text-dark;
   }
 }
 
 @layer components {
-  /* --- BUTTONS --- */
+  /* --- Buttons --- */
   .btn-primary {
     @apply bg-primary text-white font-semibold px-5 py-2.5 rounded-xl shadow-lg shadow-primary/25 
     hover:bg-primary-hover hover:shadow-primary/40 active:scale-95 transition-all duration-200 flex items-center justify-center gap-2;
@@ -22,38 +22,33 @@
   
   .btn-secondary {
     @apply bg-white text-dark font-semibold px-5 py-2.5 rounded-xl border border-gray-300 
-    hover:bg-gray-50 hover:border-gray-400 active:scale-95 transition-all duration-200;
+    hover:bg-gray-50 hover:border-gray-400 active:scale-95 transition-all duration-200 flex items-center justify-center gap-2;
   }
 
-  /* --- PROFESSIONAL CARD --- */
-  /* Apply this to the main container of every page or sections */
+  .btn-danger {
+    @apply bg-red-50 text-red-600 font-semibold px-4 py-2 rounded-lg hover:bg-red-100 transition-colors;
+  }
+
+  /* --- Cards --- */
   .card-base {
-    @apply bg-surface rounded-xl shadow-card border border-transparent overflow-hidden;
+    @apply bg-surface rounded-2xl shadow-card border border-transparent overflow-hidden;
   }
 
   .card-header {
     @apply px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white;
   }
 
-  .card-body {
-    @apply p-6;
-  }
-
-  /* --- FORMS --- */
-  .input-group {
-    @apply flex flex-col gap-1.5 mb-4;
-  }
-
+  /* --- Forms --- */
   .input-label {
-    @apply text-sm font-semibold text-dark;
+    @apply block text-sm font-semibold text-dark mb-1.5;
   }
 
   .input-field {
     @apply w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-white text-dark text-sm
-    focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all placeholder:text-gray-400;
+    focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all placeholder:text-gray-400 disabled:bg-gray-50 disabled:text-gray-500;
   }
 
-  /* --- TABLES --- */
+  /* --- Tables --- */
   .table-container {
     @apply w-full overflow-x-auto;
   }
@@ -67,11 +62,11 @@
   }
 
   .professional-table th {
-    @apply py-3 px-4 text-xs font-bold text-secondary uppercase tracking-wider whitespace-nowrap;
+    @apply py-4 px-6 text-xs font-bold text-secondary uppercase tracking-wider whitespace-nowrap;
   }
 
   .professional-table td {
-    @apply py-4 px-4 text-sm text-dark border-b border-gray-100 whitespace-nowrap;
+    @apply py-4 px-6 text-sm text-dark border-b border-gray-100 whitespace-nowrap;
   }
 
   .professional-table tr:hover {

@@ -1,3 +1,4 @@
+// src/pages/auth/Login.jsx
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, Link } from 'react-router-dom';
@@ -36,76 +37,129 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex bg-white font-sans">
-      {/* Left Side */}
-      <div className="hidden lg:flex w-1/2 bg-[#1A1C1E] relative overflow-hidden items-center justify-center p-12">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent"></div>
-        <div className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-primary/20 rounded-full blur-[100px]"></div>
-        <div className="relative z-10 text-center text-white max-w-lg">
-            <h1 className="text-6xl font-extrabold mb-6 tracking-tight">Order<span className="text-primary">Now</span></h1>
-            <p className="text-lg text-gray-400 leading-relaxed">Control your restaurant operations, delivery fleet, and marketing from a single professional dashboard.</p>
+    <div className="min-h-screen flex flex-col lg:flex-row bg-cream">
+      {/* Left promotional / branding column */}
+      <aside className="w-full lg:w-1/2 hidden lg:flex items-center justify-center p-12 relative overflow-hidden bg-[#111214]">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent pointer-events-none" />
+        <div className="absolute -top-36 -left-36 w-[420px] h-[420px] bg-primary/20 rounded-full blur-[80px]" />
+        <div className="relative z-10 max-w-lg text-left text-white">
+          <h1 className="text-5xl font-extrabold leading-tight mb-4 tracking-tight">
+            Order<span className="text-primary">Now</span>
+          </h1>
+          <p className="text-gray-300 text-lg mb-6">
+            Run your restaurant, manage orders, and dispatch with a single professional dashboard.
+          </p>
+          <ul className="space-y-3 text-gray-300/90">
+            <li className="flex items-start gap-3">
+              <span className="inline-block w-2 h-2 bg-primary rounded-full mt-2" />
+              <span>Real-time order management</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="inline-block w-2 h-2 bg-primary rounded-full mt-2" />
+              <span>Driver & fleet control</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="inline-block w-2 h-2 bg-primary rounded-full mt-2" />
+              <span>Marketing & analytics</span>
+            </li>
+          </ul>
         </div>
-      </div>
+      </aside>
 
-      {/* Right Side */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 bg-cream">
-        <div className="w-full max-w-md bg-white p-10 rounded-3xl shadow-xl border border-gray-100 animate-scale-in">
-          <div className="mb-10">
-            <h2 className="text-3xl font-bold text-dark">Partner Login</h2>
-            <p className="text-secondary mt-2">Enter your credentials to access the panel.</p>
-          </div>
+      {/* Right form column */}
+      <main className="w-full lg:w-1/2 flex items-center justify-center p-6">
+        <div className="w-full max-w-md bg-white rounded-3xl shadow-card border border-gray-100 overflow-hidden">
+          <div className="p-8 sm:p-10">
+            <div className="mb-6 text-center">
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-dark">Partner Login</h2>
+              <p className="text-sm text-secondary mt-2">Sign in to access your dashboard</p>
+            </div>
 
-          {step === 1 ? (
-            <form className="space-y-6" onSubmit={handleSubmit(onRequestOTP)}>
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-dark">Email Address</label>
-                <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <input
-                    type="email"
-                    {...register('email', { required: true })}
-                    className="input-field pl-12 py-3"
-                    placeholder="name@restaurant.com"
-                  />
+            {step === 1 ? (
+              <form onSubmit={handleSubmit(onRequestOTP)} className="space-y-5">
+                <div>
+                  <label htmlFor="email" className="input-label">Email</label>
+                  <div className="relative mt-1">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <input
+                      id="email"
+                      type="email"
+                      {...register('email', { required: true })}
+                      className="input-field pl-12 py-3"
+                      placeholder="name@restaurant.com"
+                      aria-label="Email address"
+                    />
+                  </div>
                 </div>
-              </div>
-              
-              <button type="submit" disabled={isSubmitting} className="w-full btn-primary py-3 text-base shadow-lg shadow-primary/20">
-                {isSubmitting ? 'Checking...' : 'Continue'} <ArrowRight className="w-5 h-5" />
-              </button>
-            </form>
-          ) : (
-            <form className="space-y-6 animate-slide-in-right" onSubmit={handleSubmit(onVerifyOTP)}>
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <label className="text-sm font-semibold text-dark">One-Time Password</label>
-                  <button type="button" onClick={() => setStep(1)} className="text-xs text-primary font-bold hover:underline">Change Email</button>
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full btn-primary flex items-center justify-center gap-3 py-3"
+                >
+                  {isSubmitting ? 'Checking...' : 'Continue'}
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+
+                <div className="text-center text-sm text-secondary">
+                  New here?{' '}
+                  <Link to="/auth/register" className="text-primary font-bold hover:underline">
+                    Apply as partner
+                  </Link>
                 </div>
+              </form>
+            ) : (
+              <form onSubmit={handleSubmit(onVerifyOTP)} className="space-y-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label htmlFor="otp" className="input-label">One-Time Password</label>
+                    <p className="text-xs text-secondary">Sent to <span className="font-medium text-dark">{email}</span></p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setStep(1)}
+                    className="text-xs text-primary font-semibold hover:underline"
+                  >
+                    Change Email
+                  </button>
+                </div>
+
                 <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                   <input
+                    id="otp"
                     type="text"
                     {...register('otp', { required: true })}
-                    className="input-field pl-12 py-3 tracking-[0.5em] text-center font-bold text-lg"
+                    className="input-field pl-12 py-3 tracking-widest text-center font-semibold text-lg"
                     placeholder="••••••"
                     maxLength={6}
+                    inputMode="numeric"
                     autoFocus
+                    aria-label="One time password"
                   />
                 </div>
-              </div>
 
-              <button type="submit" disabled={isSubmitting} className="w-full btn-primary py-3 text-base shadow-lg shadow-primary/20">
-                {isSubmitting ? 'Verifying...' : 'Access Dashboard'}
-              </button>
-            </form>
-          )}
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full btn-primary flex items-center justify-center gap-3 py-3"
+                >
+                  {isSubmitting ? 'Verifying...' : 'Access Dashboard'}
+                </button>
 
-          <div className="mt-10 text-center text-sm text-secondary">
-            Interested in partnering?{' '}
-            <Link to="/auth/register" className="font-bold text-primary hover:underline">Apply Now</Link>
+                <div className="text-center text-sm text-secondary">
+                  Didn't receive email?{' '}
+                  <button type="button" onClick={() => setStep(1)} className="text-primary font-bold hover:underline">Resend</button>
+                </div>
+              </form>
+            )}
+          </div>
+
+          <div className="px-6 py-4 bg-cream/50 text-center text-xs text-secondary border-t border-gray-100">
+            By signing in you agree to our <span className="text-primary font-semibold">Terms & Privacy</span>.
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

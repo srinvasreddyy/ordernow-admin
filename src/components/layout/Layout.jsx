@@ -39,7 +39,7 @@ export default function Layout() {
 
   const SidebarContent = () => (
     <>
-      <div className="h-20 flex items-center justify-center border-b border-gray-800/50">
+      <div className="h-20 flex items-center px-6 border-b border-gray-800/50">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-primary rounded-lg shadow-lg shadow-primary/40 shrink-0">
             <Store className="w-5 h-5 text-white" />
@@ -52,7 +52,7 @@ export default function Layout() {
         </div>
       </div>
 
-      <nav className="flex-1 py-6 px-3 space-y-1 overflow-y-auto">
+      <nav className="flex-1 py-6 px-4 space-y-1 overflow-y-auto custom-scrollbar">
         {NAV_ITEMS.map((item) => {
           const isActive = location.pathname === item.href || (item.href !== '/' && location.pathname.startsWith(item.href));
           return (
@@ -60,7 +60,7 @@ export default function Layout() {
               key={item.name}
               to={item.href}
               className={clsx(
-                "flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200 group relative mb-1",
+                "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group relative mb-1",
                 isActive 
                   ? "bg-primary text-white shadow-lg shadow-primary/30 font-medium" 
                   : "text-gray-400 hover:bg-white/5 hover:text-white"
@@ -80,7 +80,7 @@ export default function Layout() {
       <div className="p-4 border-t border-gray-800/50">
         <button 
           onClick={logout}
-          className="flex items-center gap-3 text-gray-400 hover:text-red-400 w-full px-3 py-2.5 rounded-lg hover:bg-white/5 transition-all group"
+          className="flex items-center gap-3 text-gray-400 hover:text-red-400 w-full px-4 py-3 rounded-xl hover:bg-white/5 transition-all group"
         >
           <LogOut className="w-5 h-5 shrink-0 group-hover:-translate-x-1 transition-transform" />
           <span className={clsx("font-medium text-sm", !isSidebarOpen && "lg:hidden")}>Logout</span>
@@ -94,15 +94,15 @@ export default function Layout() {
       {isMockMode && (
         <div className="bg-red-600 text-white px-4 py-1 text-center text-xs font-bold flex items-center justify-center gap-2 z-50">
           <WifiOff className="w-3 h-3" />
-          <span>OFFLINE MODE - MOCK DATA</span>
+          <span>OFFLINE MODE</span>
         </div>
       )}
 
       <div className="flex flex-1 overflow-hidden">
         {/* Desktop Sidebar */}
         <aside className={clsx(
-          "hidden lg:flex flex-col bg-[#1A1C1E] text-white transition-all duration-300 ease-in-out z-30 shadow-xl",
-          isSidebarOpen ? "w-[260px]" : "w-20"
+          "hidden lg:flex flex-col bg-[#161C24] text-white transition-all duration-300 ease-in-out z-30 shadow-2xl",
+          isSidebarOpen ? "w-[280px]" : "w-20"
         )}>
           <SidebarContent />
         </aside>
@@ -114,7 +114,7 @@ export default function Layout() {
         )}>
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
           <aside className={clsx(
-            "absolute left-0 top-0 bottom-0 w-[260px] bg-[#1A1C1E] text-white flex flex-col transform transition-transform duration-300",
+            "absolute left-0 top-0 bottom-0 w-[280px] bg-[#161C24] text-white flex flex-col transform transition-transform duration-300",
             isMobileOpen ? "translate-x-0" : "-translate-x-full"
           )}>
             <button onClick={() => setMobileOpen(false)} className="absolute top-4 right-4 text-gray-400">
@@ -124,7 +124,7 @@ export default function Layout() {
           </aside>
         </div>
 
-        {/* Main Content Area */}
+        {/* Main Content */}
         <div className="flex-1 flex flex-col min-w-0 bg-cream">
           <Header 
             toggleSidebar={() => setSidebarOpen(!isSidebarOpen)} 
@@ -132,8 +132,8 @@ export default function Layout() {
             isSidebarOpen={isSidebarOpen} 
           />
           
-          <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-8">
-            <div className="max-w-7xl mx-auto pb-10">
+          <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-8 scroll-smooth">
+            <div className="max-w-[1600px] mx-auto pb-10">
               <Outlet />
             </div>
           </main>

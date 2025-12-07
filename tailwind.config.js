@@ -7,24 +7,27 @@ export default {
   theme: {
     extend: {
       colors: {
-        cream: '#F4F6F8',      // UPDATED: Standard professional dashboard background (cool gray/white)
-        beige: '#EFE5D5',      
-        primary: '#FF6D1F',    
+        cream: '#F4F6F8',      // UPDATED: Cleaner, professional background
+        beige: '#EFE5D5',
+        primary: '#FF6D1F',    // Your Brand Orange
         'primary-hover': '#E55C15',
-        dark: '#212B36',       // UPDATED: Professional dark text
+        dark: '#212B36',       // Professional Dark Text
+        secondary: '#637381',  // Muted Text
+        success: '#22C55E',
+        danger: '#FF5630',
+        warning: '#FFAB00',
+        info: '#00B8D9',
         surface: '#FFFFFF',
-        secondary: '#637381',  // Muted text color
-        border: '#E0E0E0',     // Light borders
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },
       boxShadow: {
-        'soft': '0 0 2px 0 rgba(145, 158, 171, 0.2), 0 12px 24px -4px rgba(145, 158, 171, 0.12)', // Professional "Card" shadow
         'card': '0 0 2px 0 rgba(145, 158, 171, 0.2), 0 12px 24px -4px rgba(145, 158, 171, 0.12)',
+        'dropdown': '0 0 2px 0 rgba(145, 158, 171, 0.24), -20px 20px 40px -4px rgba(145, 158, 171, 0.24)',
       },
       borderRadius: {
-        'xl': '16px', // Consistent rounded corners
+        'xl': '16px',
       }
     },
   },
