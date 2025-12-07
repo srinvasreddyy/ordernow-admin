@@ -7,38 +7,31 @@ import toast from 'react-hot-toast';
 import clsx from 'clsx';
 
 export default function Settings() {
-  const { user } = useAuth(); // User contains restaurant info if populated correctly on login, but better to fetch fresh.
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
   const [isLoading, setIsLoading] = useState(true);
 
   const { register: registerProfile, handleSubmit: handleProfileSubmit, reset: resetProfile } = useForm();
   const { register: registerConfig, handleSubmit: handleConfigSubmit, reset: resetConfig } = useForm();
 
-  // Fetch fresh restaurant data
   useEffect(() => {
     const fetchSettings = async () => {
       try {
         const { data } = await api.get(`/restaurants/${user._id}`);
         const r = data.data;
-        
         resetProfile({
           restaurantName: r.restaurantName,
           ownerFullName: r.ownerFullName,
           phoneNumber: r.phoneNumber,
           primaryContactName: r.primaryContactName,
-          // Flatten address for easier form handling if needed, or keep nested
-          // Using simplified approach for address here
         });
-
         resetConfig({
           handlingChargesPercentage: r.handlingChargesPercentage,
           freeDeliveryRadius: r.deliverySettings.freeDeliveryRadius,
           chargePerMile: r.deliverySettings.chargePerMile,
           maxDeliveryRadius: r.deliverySettings.maxDeliveryRadius,
           acceptsDining: r.acceptsDining,
-          // acceptsCashOnDelivery: r.acceptsCashOnDelivery // Assuming this field exists in model
         });
-        
         setIsLoading(false);
       } catch (error) {
         toast.error("Failed to load settings");
@@ -50,15 +43,14 @@ export default function Settings() {
   const onProfileSubmit = async (data) => {
     try {
       await api.put('/restaurants/profile', data);
-      toast.success("Profile updated successfully");
+      toast.success("Profile updated");
     } catch (error) {
-      toast.error(error.response?.data?.message || "Update failed");
+      toast.error("Update failed");
     }
   };
 
   const onConfigSubmit = async (data) => {
     try {
-      // Reconstruct nested object
       const payload = {
         handlingChargesPercentage: Number(data.handlingChargesPercentage),
         deliverySettings: {
@@ -67,29 +59,28 @@ export default function Settings() {
           maxDeliveryRadius: Number(data.maxDeliveryRadius),
         },
         acceptsDining: data.acceptsDining,
-        stripeSecretKey: data.stripeSecretKey || undefined // Only send if provided
+        stripeSecretKey: data.stripeSecretKey || undefined
       };
-      
       await api.put('/restaurants/settings', payload);
-      toast.success("Settings updated successfully");
+      toast.success("Settings updated");
     } catch (error) {
-      toast.error(error.response?.data?.message || "Update failed");
+      toast.error("Update failed");
     }
   };
 
-  if (isLoading) return <div className="p-10 text-center">Loading settings...</div>;
+  if (isLoading) return <div className="p-10 text-center text-secondary">Loading settings...</div>;
 
   return (
-    <div className="max-w-4xl mx-auto pb-20">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Settings</h1>
+    <div className="max-w-4xl mx-auto pb-20 animate-fade-in">
+      <h1 className="text-2xl font-bold text-dark mb-6">Settings</h1>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div className="flex border-b border-gray-200">
+      <div className="card-base overflow-hidden">
+        <div className="flex border-b border-gray-100 bg-gray-50/50">
           <button
             onClick={() => setActiveTab('profile')}
             className={clsx(
-              "flex-1 py-4 text-sm font-medium flex items-center justify-center gap-2 transition-colors",
-              activeTab === 'profile' ? "text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50" : "text-gray-500 hover:text-gray-700"
+              "flex-1 py-4 text-sm font-semibold flex items-center justify-center gap-2 transition-all border-b-2",
+              activeTab === 'profile' ? "text-primary border-primary bg-white" : "text-secondary border-transparent hover:text-dark hover:bg-gray-50"
             )}
           >
             <Store className="w-4 h-4" /> Profile Information
@@ -97,81 +88,87 @@ export default function Settings() {
           <button
             onClick={() => setActiveTab('config')}
             className={clsx(
-              "flex-1 py-4 text-sm font-medium flex items-center justify-center gap-2 transition-colors",
-              activeTab === 'config' ? "text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50" : "text-gray-500 hover:text-gray-700"
+              "flex-1 py-4 text-sm font-semibold flex items-center justify-center gap-2 transition-all border-b-2",
+              activeTab === 'config' ? "text-primary border-primary bg-white" : "text-secondary border-transparent hover:text-dark hover:bg-gray-50"
             )}
           >
             <SettingsIcon className="w-4 h-4" /> Configuration & Finance
           </button>
         </div>
 
-        <div className="p-6">
+        <div className="p-8">
           {activeTab === 'profile' ? (
             <form onSubmit={handleProfileSubmit(onProfileSubmit)} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Restaurant Name</label>
-                  <input {...registerProfile('restaurantName')} className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2" />
+                  <label className="input-label">Restaurant Name</label>
+                  <input {...registerProfile('restaurantName')} className="input-field" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Owner Name</label>
-                  <input {...registerProfile('ownerFullName')} className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2" />
+                  <label className="input-label">Owner Name</label>
+                  <input {...registerProfile('ownerFullName')} className="input-field" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Phone Number</label>
-                  <input {...registerProfile('phoneNumber')} className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2" />
+                  <label className="input-label">Phone Number</label>
+                  <input {...registerProfile('phoneNumber')} className="input-field" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Primary Contact</label>
-                  <input {...registerProfile('primaryContactName')} className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2" />
+                  <label className="input-label">Primary Contact</label>
+                  <input {...registerProfile('primaryContactName')} className="input-field" />
                 </div>
               </div>
-              <div className="flex justify-end">
-                <button type="submit" className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 flex items-center gap-2">
+              <div className="flex justify-end pt-4">
+                <button type="submit" className="btn-primary">
                   <Save className="w-4 h-4" /> Save Changes
                 </button>
               </div>
             </form>
           ) : (
             <form onSubmit={handleConfigSubmit(onConfigSubmit)} className="space-y-6">
-              <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-100 text-sm text-yellow-800 mb-6">
-                <strong>Note:</strong> Adjusting these settings will affect how delivery fees are calculated for customers immediately.
+              <div className="bg-orange-50 p-4 rounded-xl border border-orange-100 text-sm text-orange-800 mb-6 flex gap-3">
+                <div className="w-1 bg-orange-400 rounded-full"></div>
+                <div>
+                    <strong>Important:</strong> Changes here affect live delivery calculations immediately.
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Free Delivery Radius (miles)</label>
-                  <input type="number" step="0.1" {...registerConfig('freeDeliveryRadius')} className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2" />
+                  <label className="input-label">Free Delivery Radius (miles)</label>
+                  <input type="number" step="0.1" {...registerConfig('freeDeliveryRadius')} className="input-field" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Charge Per Mile (£)</label>
-                  <input type="number" step="0.01" {...registerConfig('chargePerMile')} className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2" />
+                  <label className="input-label">Charge Per Mile (£)</label>
+                  <input type="number" step="0.01" {...registerConfig('chargePerMile')} className="input-field" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Max Delivery Radius (miles)</label>
-                  <input type="number" step="0.1" {...registerConfig('maxDeliveryRadius')} className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2" />
+                  <label className="input-label">Max Delivery Radius (miles)</label>
+                  <input type="number" step="0.1" {...registerConfig('maxDeliveryRadius')} className="input-field" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Handling Charges (%)</label>
-                  <input type="number" step="0.01" {...registerConfig('handlingChargesPercentage')} className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2" />
+                  <label className="input-label">Handling Charges (%)</label>
+                  <input type="number" step="0.01" {...registerConfig('handlingChargesPercentage')} className="input-field" />
                 </div>
                 <div className="col-span-2">
-                  <label className="block text-sm font-medium text-gray-700">Update Stripe Secret Key</label>
-                  <input type="password" {...registerConfig('stripeSecretKey')} className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="Leave empty to keep unchanged" />
+                  <label className="input-label">Stripe Secret Key</label>
+                  <input type="password" {...registerConfig('stripeSecretKey')} className="input-field" placeholder="••••••••••••••••" />
                 </div>
                 
-                <div className="col-span-2 border-t pt-4">
-                    <h4 className="text-sm font-medium text-gray-900 mb-3">Operational Features</h4>
-                    <label className="flex items-center gap-3">
-                        <input type="checkbox" {...registerConfig('acceptsDining')} className="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4" />
-                        <span className="text-gray-700">Enable Dine-in / Table Management</span>
+                <div className="col-span-2 border-t border-gray-100 pt-6">
+                    <h4 className="text-sm font-bold text-dark mb-4">Operational Features</h4>
+                    <label className="flex items-center gap-3 p-4 border border-gray-200 rounded-xl hover:border-primary/50 transition-colors cursor-pointer">
+                        <input type="checkbox" {...registerConfig('acceptsDining')} className="rounded text-primary focus:ring-primary/25 w-5 h-5 border-gray-300" />
+                        <div>
+                            <span className="block text-sm font-bold text-dark">Enable Table Management</span>
+                            <span className="block text-xs text-secondary">Allow dining in and table reservations.</span>
+                        </div>
                     </label>
                 </div>
               </div>
 
-              <div className="flex justify-end">
-                <button type="submit" className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 flex items-center gap-2">
-                  <Save className="w-4 h-4" /> Save Configuration
+              <div className="flex justify-end pt-4">
+                <button type="submit" className="btn-primary">
+                  <Save className="w-4 h-4" /> Update Configuration
                 </button>
               </div>
             </form>

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
-import { Plus, Trash2, Edit2, Armchair, Power } from 'lucide-react';
+import { Plus, Trash2, Edit2, Armchair, Power, Users } from 'lucide-react';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
 import clsx from 'clsx';
@@ -11,7 +11,6 @@ export default function Tables() {
   const [editingTable, setEditingTable] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Fetch Tables
   const { data: tables, isLoading } = useQuery({
     queryKey: ['tables'],
     queryFn: async () => {
@@ -20,14 +19,9 @@ export default function Tables() {
     }
   });
 
-  // Add/Update Mutation
   const mutation = useMutation({
     mutationFn: async (data) => {
-      if (editingTable) {
-        await api.put(`/tables/${editingTable._id}`, data);
-      } else {
-        await api.post('/tables', data);
-      }
+      editingTable ? await api.put(`/tables/${editingTable._id}`, data) : await api.post('/tables', data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['tables']);
@@ -37,7 +31,6 @@ export default function Tables() {
     onError: (err) => toast.error(err.response?.data?.message || "Operation failed")
   });
 
-  // Toggle Status Mutation
   const toggleMutation = useMutation({
     mutationFn: async (id) => api.patch(`/tables/${id}/toggle-active`),
     onSuccess: () => {
@@ -46,7 +39,6 @@ export default function Tables() {
     }
   });
 
-  // Delete Mutation
   const deleteMutation = useMutation({
     mutationFn: async (id) => api.delete(`/tables/${id}`),
     onSuccess: () => {
@@ -55,16 +47,11 @@ export default function Tables() {
     }
   });
 
-  // Form Handling
   const { register, handleSubmit, reset, formState: { errors } } = useForm();
 
   const openModal = (table = null) => {
     setEditingTable(table);
-    if (table) {
-      reset({ tableNumber: table.tableNumber, capacity: table.capacity, area: table.area });
-    } else {
-      reset({ tableNumber: '', capacity: '', area: 'General' });
-    }
+    reset(table ? { tableNumber: table.tableNumber, capacity: table.capacity, area: table.area } : { tableNumber: '', capacity: '', area: 'General' });
     setIsModalOpen(true);
   };
 
@@ -74,64 +61,60 @@ export default function Tables() {
     reset();
   };
 
-  const onSubmit = (data) => mutation.mutate(data);
-
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Table Management</h1>
-          <p className="text-gray-500 text-sm">Organize your dining area layout</p>
+          <h1 className="text-2xl font-bold text-dark">Tables</h1>
+          <p className="text-secondary text-sm">Manage your restaurant layout.</p>
         </div>
-        <button
-          onClick={() => openModal()}
-          className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
-        >
+        <button onClick={() => openModal()} className="btn-primary">
           <Plus className="w-5 h-5" /> Add Table
         </button>
       </div>
 
       {isLoading ? (
-        <div className="text-center py-10">Loading tables...</div>
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {[1,2,3,4].map(i => <div key={i} className="h-40 bg-gray-100 rounded-xl animate-pulse"/>)}
+        </div>
       ) : tables?.length === 0 ? (
-        <div className="bg-white p-10 rounded-xl border border-dashed text-center text-gray-500">
-          No tables found. Add one to get started.
+        <div className="card-base p-12 text-center text-secondary border-dashed border-2 border-gray-200 shadow-none">
+          <Armchair className="w-12 h-12 mx-auto mb-3 opacity-20" />
+          <p>No tables configured yet.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {tables.map((table) => (
-            <div key={table._id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 relative group">
+            <div key={table._id} className="card-base p-5 relative group hover:-translate-y-1 transition-transform duration-300">
               <div className="flex justify-between items-start mb-4">
-                <div className="p-3 bg-indigo-50 rounded-full text-indigo-600">
+                <div className="p-3 bg-indigo-50 rounded-xl text-indigo-600">
                   <Armchair className="w-6 h-6" />
                 </div>
-                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button onClick={() => openModal(table)} className="p-1.5 hover:bg-gray-100 rounded text-gray-500">
+                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button onClick={() => openModal(table)} className="p-1.5 hover:bg-gray-100 rounded-lg text-secondary hover:text-primary">
                     <Edit2 className="w-4 h-4" />
                   </button>
                   <button 
                     onClick={() => { if(window.confirm('Delete table?')) deleteMutation.mutate(table._id) }}
-                    className="p-1.5 hover:bg-red-50 hover:text-red-600 rounded text-gray-500"
+                    className="p-1.5 hover:bg-red-50 hover:text-red-600 rounded-lg text-secondary"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               </div>
               
-              <h3 className="text-lg font-bold text-gray-900">Table {table.tableNumber}</h3>
-              <div className="flex justify-between items-center mt-2 text-sm text-gray-500">
-                <span>{table.capacity} Seats</span>
-                <span className="px-2 py-0.5 bg-gray-100 rounded text-xs uppercase font-medium">{table.area}</span>
+              <h3 className="text-xl font-bold text-dark">Table {table.tableNumber}</h3>
+              <div className="flex justify-between items-center mt-3 text-sm">
+                <span className="flex items-center gap-1 text-secondary"><Users className="w-3.5 h-3.5"/> {table.capacity} Seats</span>
+                <span className="px-2.5 py-1 bg-gray-50 rounded-md text-xs font-bold uppercase text-secondary tracking-wider">{table.area}</span>
               </div>
 
-              <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
-                <span className={clsx("text-xs font-medium", table.isActive ? "text-green-600" : "text-red-500")}>
+              <div className="mt-5 pt-4 border-t border-gray-100 flex justify-between items-center">
+                <span className={clsx("flex items-center gap-1.5 text-xs font-bold px-2 py-1 rounded-full", table.isActive ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700")}>
+                  <div className={clsx("w-1.5 h-1.5 rounded-full", table.isActive ? "bg-green-500" : "bg-red-500")} />
                   {table.isActive ? 'Active' : 'Inactive'}
                 </span>
-                <button 
-                  onClick={() => toggleMutation.mutate(table._id)}
-                  className="text-gray-400 hover:text-indigo-600"
-                >
+                <button onClick={() => toggleMutation.mutate(table._id)} className="text-secondary hover:text-primary transition-colors">
                   <Power className="w-4 h-4" />
                 </button>
               </div>
@@ -140,27 +123,27 @@ export default function Tables() {
         </div>
       )}
 
-      {/* Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
-            <h2 className="text-xl font-bold mb-4">{editingTable ? 'Edit Table' : 'Add New Table'}</h2>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <div className="fixed inset-0 bg-dark/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 animate-scale-in">
+            <h2 className="text-xl font-bold text-dark mb-1">{editingTable ? 'Edit Table' : 'New Table'}</h2>
+            <p className="text-secondary text-sm mb-6">Enter table details below.</p>
+            <form onSubmit={handleSubmit((data) => mutation.mutate(data))} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">Table Number</label>
-                <input {...register('tableNumber', { required: true })} className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="e.g. A1" />
+                <label className="input-label">Table Number/Name</label>
+                <input {...register('tableNumber', { required: true })} className="input-field" placeholder="e.g. A1 or 5" autoFocus />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Capacity</label>
-                <input type="number" {...register('capacity', { required: true, min: 1 })} className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="4" />
+                <label className="input-label">Seating Capacity</label>
+                <input type="number" {...register('capacity', { required: true, min: 1 })} className="input-field" placeholder="4" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Area</label>
-                <input {...register('area')} className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="e.g. Patio" />
+                <label className="input-label">Area / Zone</label>
+                <input {...register('area')} className="input-field" placeholder="e.g. Main Hall" />
               </div>
-              <div className="flex justify-end gap-3 mt-6">
-                <button type="button" onClick={closeModal} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">Cancel</button>
-                <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Save</button>
+              <div className="flex justify-end gap-3 mt-8">
+                <button type="button" onClick={closeModal} className="btn-secondary">Cancel</button>
+                <button type="submit" className="btn-primary">Save Table</button>
               </div>
             </form>
           </div>

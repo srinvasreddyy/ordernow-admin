@@ -8,9 +8,8 @@ import clsx from 'clsx';
 
 export default function Marketing() {
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState('list'); // 'list' or 'create'
+  const [activeTab, setActiveTab] = useState('list');
   
-  // -- Fetch Data --
   const { data: announcements, isLoading } = useQuery({
     queryKey: ['announcements'],
     queryFn: async () => {
@@ -27,12 +26,11 @@ export default function Marketing() {
     }
   });
 
-  // -- Mutations --
   const deleteMutation = useMutation({
     mutationFn: async (id) => api.delete(`/announcements/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries(['announcements']);
-      toast.success("Announcement deleted");
+      toast.success("Deleted");
     }
   });
 
@@ -44,7 +42,6 @@ export default function Marketing() {
     }
   });
 
-  // -- Form Logic --
   const { register, handleSubmit, watch, reset, formState: { errors, isSubmitting } } = useForm();
   const announcementType = watch('announcementType', 'text');
 
@@ -54,133 +51,100 @@ export default function Marketing() {
       formData.append('title', data.title);
       formData.append('content', data.content);
       formData.append('announcementType', data.announcementType);
-
-      if (data.announcementType === 'image' && data.image?.[0]) {
-        formData.append('image', data.image[0]);
-      }
-
+      if (data.announcementType === 'image' && data.image?.[0]) formData.append('image', data.image[0]);
       if (data.announcementType === 'offer') {
-        const offerDetails = {
+        formData.append('offerDetails', JSON.stringify({
           promoCode: data.promoCode,
           discountType: data.discountType,
           discountValue: Number(data.discountValue),
           minOrderValue: Number(data.minOrderValue),
           validUntil: data.validUntil
-        };
-        formData.append('offerDetails', JSON.stringify(offerDetails));
+        }));
       }
-
-      await api.post('/announcements', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-
-      toast.success("Campaign created successfully!");
+      await api.post('/announcements', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+      toast.success("Campaign created!");
       reset();
       setActiveTab('list');
       queryClient.invalidateQueries(['announcements']);
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to create campaign");
+      toast.error("Failed to create campaign");
     }
   };
 
   return (
-    <div className="space-y-6 pb-20">
+    <div className="space-y-6 pb-20 animate-fade-in">
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Marketing & Offers</h1>
-          <p className="text-gray-500 text-sm">Engage customers with announcements and promo codes</p>
+          <h1 className="text-2xl font-bold text-dark">Marketing</h1>
+          <p className="text-secondary text-sm">Boost sales with offers and news.</p>
         </div>
-        <div className="flex bg-gray-100 p-1 rounded-lg">
-          <button 
-            onClick={() => setActiveTab('list')}
-            className={clsx("px-4 py-2 text-sm font-medium rounded-md transition-all", activeTab === 'list' ? "bg-white shadow text-gray-900" : "text-gray-500 hover:text-gray-900")}
-          >
-            Active Campaigns
-          </button>
-          <button 
-            onClick={() => setActiveTab('create')}
-            className={clsx("px-4 py-2 text-sm font-medium rounded-md transition-all", activeTab === 'create' ? "bg-white shadow text-indigo-600" : "text-gray-500 hover:text-gray-900")}
-          >
-            Create New
-          </button>
+        <div className="bg-white p-1 rounded-xl shadow-sm border border-gray-200 flex">
+          <button onClick={() => setActiveTab('list')} className={clsx("px-4 py-2 text-sm font-semibold rounded-lg transition-all", activeTab === 'list' ? "bg-dark text-white shadow" : "text-secondary hover:text-dark")}>Active Campaigns</button>
+          <button onClick={() => setActiveTab('create')} className={clsx("px-4 py-2 text-sm font-semibold rounded-lg transition-all", activeTab === 'create' ? "bg-primary text-white shadow" : "text-secondary hover:text-dark")}>Create New</button>
         </div>
       </div>
 
       {/* Stats Summary */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
-          <h3 className="text-indigo-600 text-xs font-bold uppercase tracking-wider">Total Reactions</h3>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{stats?.totalReactions || 0}</p>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="card-base p-5 border-l-4 border-l-indigo-500">
+          <h3 className="text-secondary text-xs font-bold uppercase tracking-wider mb-1">Total Reactions</h3>
+          <p className="text-2xl font-bold text-dark">{stats?.totalReactions || 0}</p>
         </div>
-        <div className="bg-green-50 p-4 rounded-xl border border-green-100">
-          <h3 className="text-green-600 text-xs font-bold uppercase tracking-wider">Last 24h Activity</h3>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{stats?.reactionsInLast24h || 0}</p>
+        <div className="card-base p-5 border-l-4 border-l-green-500">
+          <h3 className="text-secondary text-xs font-bold uppercase tracking-wider mb-1">Last 24h Activity</h3>
+          <p className="text-2xl font-bold text-dark">{stats?.reactionsInLast24h || 0}</p>
         </div>
-        <div className="bg-orange-50 p-4 rounded-xl border border-orange-100">
-          <h3 className="text-orange-600 text-xs font-bold uppercase tracking-wider">Trend</h3>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{stats?.percentageChangeInLast24h || 0}%</p>
+        <div className="card-base p-5 border-l-4 border-l-orange-500">
+          <h3 className="text-secondary text-xs font-bold uppercase tracking-wider mb-1">Trend</h3>
+          <p className="text-2xl font-bold text-dark">{stats?.percentageChangeInLast24h || 0}%</p>
         </div>
       </div>
 
       {/* Content Area */}
       {activeTab === 'list' ? (
-        <div className="space-y-4">
-          {isLoading ? (
-            <div className="text-center py-10">Loading campaigns...</div>
-          ) : announcements?.length === 0 ? (
-            <div className="text-center py-10 text-gray-500 bg-white rounded-xl border border-dashed">
-              No active announcements. Create one to boost sales!
-            </div>
+        isLoading ? <div className="p-10 text-center text-secondary">Loading...</div> : announcements?.length === 0 ? (
+            <div className="card-base p-16 text-center text-secondary border-dashed">No active campaigns.</div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {announcements.map((item) => (
-                <div key={item._id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
+                <div key={item._id} className="card-base flex flex-col group hover:shadow-lg transition-all">
                   {item.imageUrl && (
-                    <div className="h-40 w-full bg-gray-100">
-                        <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" />
+                    <div className="h-40 w-full bg-gray-100 overflow-hidden">
+                        <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                     </div>
                   )}
                   <div className="p-5 flex-1 flex flex-col">
-                    <div className="flex justify-between items-start mb-2">
-                        <div className="flex items-center gap-2">
-                            {item.announcementType === 'offer' ? <Tag className="w-4 h-4 text-green-600" /> : <Megaphone className="w-4 h-4 text-indigo-600" />}
-                            <span className="text-xs font-bold uppercase text-gray-500">{item.announcementType}</span>
-                        </div>
-                        <span className={clsx("w-2 h-2 rounded-full", item.isActive ? "bg-green-500" : "bg-red-500")} />
+                    <div className="flex justify-between items-start mb-3">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-gray-50 text-xs font-bold uppercase text-secondary">
+                            {item.announcementType === 'offer' ? <Tag className="w-3 h-3" /> : <Megaphone className="w-3 h-3" />}
+                            {item.announcementType}
+                        </span>
+                        <span className={clsx("w-2 h-2 rounded-full", item.isActive ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]" : "bg-red-500")} />
                     </div>
                     
-                    <h3 className="text-lg font-bold text-gray-900 mb-1">{item.title}</h3>
-                    <p className="text-sm text-gray-600 mb-4 flex-1">{item.content}</p>
+                    <h3 className="text-lg font-bold text-dark mb-1">{item.title}</h3>
+                    <p className="text-sm text-secondary mb-4 flex-1">{item.content}</p>
 
                     {item.offerDetails && (
-                        <div className="bg-green-50 p-3 rounded-lg border border-green-100 mb-4">
-                            <div className="flex justify-between items-center mb-1">
-                                <span className="text-xs text-green-700 font-medium">CODE:</span>
-                                <span className="font-mono font-bold text-green-800 bg-green-200 px-2 rounded">{item.offerDetails.promoCode}</span>
+                        <div className="bg-green-50/50 p-4 rounded-xl border border-green-100 mb-4 flex flex-col gap-1">
+                            <div className="flex justify-between items-center">
+                                <span className="text-xs text-green-700 font-bold uppercase">Code</span>
+                                <span className="font-mono font-bold text-green-800 bg-white px-2 py-0.5 rounded border border-green-200 shadow-sm">{item.offerDetails.promoCode}</span>
                             </div>
-                            <div className="text-xs text-green-700">
+                            <div className="text-sm font-medium text-green-800 mt-1">
                                 {item.offerDetails.discountType === 'PERCENTAGE' ? `${item.offerDetails.discountValue}% OFF` : `£${item.offerDetails.discountValue} OFF`}
-                                <span className="mx-1">•</span>
-                                Min Order: £{item.offerDetails.minOrderValue}
+                                <span className="text-green-600 text-xs font-normal ml-2">(Min: £{item.offerDetails.minOrderValue})</span>
                             </div>
                         </div>
                     )}
 
                     <div className="flex items-center justify-between pt-4 border-t border-gray-100 mt-auto">
-                        <div className="flex items-center gap-4 text-sm text-gray-500">
-                            <span className="flex items-center gap-1"><ThumbsUp className="w-4 h-4"/> {item.reactionCount}</span>
-                        </div>
+                        <span className="flex items-center gap-1 text-sm font-medium text-secondary"><ThumbsUp className="w-4 h-4"/> {item.reactionCount}</span>
                         <div className="flex gap-2">
-                            <button 
-                                onClick={() => toggleMutation.mutate(item._id)}
-                                className="text-xs font-medium px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-600"
-                            >
+                            <button onClick={() => toggleMutation.mutate(item._id)} className="text-xs font-bold px-3 py-1.5 bg-gray-50 hover:bg-gray-100 rounded-lg text-secondary transition-colors">
                                 {item.isActive ? 'Deactivate' : 'Activate'}
                             </button>
-                            <button 
-                                onClick={() => { if(window.confirm('Delete campaign?')) deleteMutation.mutate(item._id) }}
-                                className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"
-                            >
+                            <button onClick={() => { if(window.confirm('Delete campaign?')) deleteMutation.mutate(item._id) }} className="p-1.5 text-secondary hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
                                 <Trash2 className="w-4 h-4" />
                             </button>
                         </div>
@@ -189,82 +153,72 @@ export default function Marketing() {
                 </div>
               ))}
             </div>
-          )}
-        </div>
+          )
       ) : (
-        // CREATE FORM
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 max-w-2xl mx-auto">
+        <div className="card-base p-8 max-w-2xl mx-auto">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Campaign Title</label>
-              <input {...register('title', { required: true })} className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500" placeholder="e.g. Weekend Madness" />
+              <label className="input-label">Campaign Title</label>
+              <input {...register('title', { required: true })} className="input-field" placeholder="e.g. Weekend Madness" />
             </div>
-
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Content / Description</label>
-              <textarea {...register('content', { required: true })} rows={3} className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500" placeholder="Describe your announcement..." />
+              <label className="input-label">Description</label>
+              <textarea {...register('content', { required: true })} rows={3} className="input-field" placeholder="Describe your announcement..." />
             </div>
 
             <div className="grid grid-cols-3 gap-4">
                {['text', 'image', 'offer'].map(type => (
                    <label key={type} className={clsx(
                        "flex flex-col items-center justify-center p-4 border-2 rounded-xl cursor-pointer transition-all",
-                       announcementType === type ? "border-indigo-600 bg-indigo-50 text-indigo-700" : "border-gray-200 hover:border-indigo-200 text-gray-500"
+                       announcementType === type ? "border-primary bg-orange-50 text-primary" : "border-gray-200 hover:border-gray-300 text-secondary"
                    )}>
                        <input type="radio" value={type} {...register('announcementType')} className="sr-only" />
-                       {type === 'text' && <Megaphone className="w-6 h-6 mb-2" />}
-                       {type === 'image' && <ImageIcon className="w-6 h-6 mb-2" />}
-                       {type === 'offer' && <Tag className="w-6 h-6 mb-2" />}
-                       <span className="capitalize font-medium text-sm">{type}</span>
+                       <span className="capitalize font-bold text-sm">{type}</span>
                    </label>
                ))}
             </div>
 
             {announcementType === 'image' && (
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Upload Banner</label>
-                    <input type="file" {...register('image', { required: true })} accept="image/*" className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" />
+                    <label className="input-label">Upload Banner</label>
+                    <input type="file" {...register('image', { required: true })} accept="image/*" className="input-field pt-2" />
                 </div>
             )}
 
             {announcementType === 'offer' && (
-                <div className="bg-gray-50 p-5 rounded-xl space-y-4 border border-gray-200">
-                    <h4 className="font-semibold text-gray-900">Offer Configuration</h4>
+                <div className="bg-gray-50 p-6 rounded-xl border border-gray-200 space-y-4">
+                    <h4 className="font-bold text-dark text-sm uppercase tracking-wide">Offer Details</h4>
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-xs font-medium text-gray-500 uppercase mb-1">Promo Code</label>
-                            <input {...register('promoCode', { required: true })} className="w-full border-gray-300 rounded-md shadow-sm uppercase font-mono" placeholder="SAVE20" />
+                            <label className="input-label">Promo Code</label>
+                            <input {...register('promoCode', { required: true })} className="input-field uppercase font-mono" placeholder="SAVE20" />
                         </div>
                         <div>
-                            <label className="block text-xs font-medium text-gray-500 uppercase mb-1">Valid Until</label>
-                            <input type="date" {...register('validUntil', { required: true })} className="w-full border-gray-300 rounded-md shadow-sm" />
+                            <label className="input-label">Valid Until</label>
+                            <input type="date" {...register('validUntil', { required: true })} className="input-field" />
                         </div>
                         <div>
-                            <label className="block text-xs font-medium text-gray-500 uppercase mb-1">Discount Type</label>
-                            <select {...register('discountType')} className="w-full border-gray-300 rounded-md shadow-sm">
+                            <label className="input-label">Discount Type</label>
+                            <select {...register('discountType')} className="input-field">
                                 <option value="PERCENTAGE">Percentage (%)</option>
                                 <option value="FLAT">Flat Amount (£)</option>
                                 <option value="FREE_DELIVERY">Free Delivery</option>
                             </select>
                         </div>
                         <div>
-                            <label className="block text-xs font-medium text-gray-500 uppercase mb-1">Value</label>
-                            <input type="number" {...register('discountValue', { required: true })} className="w-full border-gray-300 rounded-md shadow-sm" placeholder="20" />
+                            <label className="input-label">Value</label>
+                            <input type="number" {...register('discountValue', { required: true })} className="input-field" />
                         </div>
                         <div className="col-span-2">
-                            <label className="block text-xs font-medium text-gray-500 uppercase mb-1">Min Order Value (£)</label>
-                            <input type="number" {...register('minOrderValue', { required: true })} className="w-full border-gray-300 rounded-md shadow-sm" placeholder="15" />
+                            <label className="input-label">Min Order Value (£)</label>
+                            <input type="number" {...register('minOrderValue', { required: true })} className="input-field" />
                         </div>
                     </div>
                 </div>
             )}
 
-            <div className="flex justify-end pt-4">
-                <button 
-                    type="submit" 
-                    disabled={isSubmitting}
-                    className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 font-medium shadow-sm disabled:bg-gray-400"
-                >
+            <div className="flex justify-end pt-2">
+                <button type="submit" disabled={isSubmitting} className="btn-primary w-full sm:w-auto">
                     {isSubmitting ? 'Creating...' : 'Launch Campaign'}
                 </button>
             </div>

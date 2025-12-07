@@ -14,7 +14,7 @@ const NAV_ITEMS = [
   { name: 'Orders', href: '/orders', icon: ShoppingBag },
   { name: 'Menu', href: '/menu', icon: UtensilsCrossed },
   { name: 'Tables', href: '/tables', icon: Armchair },
-  { name: 'Reservations', href: '/bookings', icon: Users }, // Changed icon context
+  { name: 'Reservations', href: '/bookings', icon: Users },
   { name: 'Marketing', href: '/marketing', icon: Megaphone },
   { name: 'Fleet', href: '/fleet', icon: Users },
   { name: 'Settings', href: '/settings', icon: Settings },
@@ -33,19 +33,18 @@ export default function Layout() {
     return () => window.removeEventListener('mock-mode-active', handleMockEvent);
   }, []);
 
-  // Close mobile menu on route change
   useEffect(() => {
     setMobileOpen(false);
   }, [location.pathname]);
 
   const SidebarContent = () => (
     <>
-      <div className="h-24 flex items-center justify-center border-b border-gray-800/50">
+      <div className="h-20 flex items-center justify-center border-b border-gray-800/50">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-primary rounded-xl shrink-0">
-            <Store className="w-6 h-6 text-white" />
+          <div className="p-2 bg-primary rounded-lg shadow-lg shadow-primary/40 shrink-0">
+            <Store className="w-5 h-5 text-white" />
           </div>
-          <span className={clsx("font-bold text-2xl tracking-tight text-white transition-opacity duration-300", 
+          <span className={clsx("font-bold text-xl tracking-tight text-white transition-opacity duration-300", 
             !isSidebarOpen && "lg:opacity-0 lg:hidden"
           )}>
             Order<span className="text-primary">Now</span>
@@ -61,14 +60,14 @@ export default function Layout() {
               key={item.name}
               to={item.href}
               className={clsx(
-                "flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 group relative",
+                "flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200 group relative mb-1",
                 isActive 
-                  ? "bg-primary text-white shadow-lg shadow-primary/25" 
+                  ? "bg-primary text-white shadow-lg shadow-primary/30 font-medium" 
                   : "text-gray-400 hover:bg-white/5 hover:text-white"
               )}
             >
               <item.icon className={clsx("w-5 h-5 shrink-0", isActive && "animate-pulse")} />
-              <span className={clsx("font-medium whitespace-nowrap transition-all duration-300", 
+              <span className={clsx("whitespace-nowrap transition-all duration-300 text-sm", 
                 !isSidebarOpen && "lg:hidden"
               )}>
                 {item.name}
@@ -81,41 +80,41 @@ export default function Layout() {
       <div className="p-4 border-t border-gray-800/50">
         <button 
           onClick={logout}
-          className="flex items-center gap-3 text-gray-400 hover:text-red-400 w-full px-3 py-3 rounded-xl hover:bg-white/5 transition-all group"
+          className="flex items-center gap-3 text-gray-400 hover:text-red-400 w-full px-3 py-2.5 rounded-lg hover:bg-white/5 transition-all group"
         >
           <LogOut className="w-5 h-5 shrink-0 group-hover:-translate-x-1 transition-transform" />
-          <span className={clsx("font-medium", !isSidebarOpen && "lg:hidden")}>Logout</span>
+          <span className={clsx("font-medium text-sm", !isSidebarOpen && "lg:hidden")}>Logout</span>
         </button>
       </div>
     </>
   );
 
   return (
-    <div className="min-h-screen bg-cream flex flex-col">
+    <div className="h-screen bg-cream flex flex-col overflow-hidden">
       {isMockMode && (
-        <div className="bg-red-600 text-white px-4 py-2 text-center text-xs font-bold flex items-center justify-center gap-2 sticky top-0 z-50">
+        <div className="bg-red-600 text-white px-4 py-1 text-center text-xs font-bold flex items-center justify-center gap-2 z-50">
           <WifiOff className="w-3 h-3" />
-          <span>OFFLINE MODE - USING MOCK DATA</span>
+          <span>OFFLINE MODE - MOCK DATA</span>
         </div>
       )}
 
       <div className="flex flex-1 overflow-hidden">
         {/* Desktop Sidebar */}
         <aside className={clsx(
-          "hidden lg:flex flex-col bg-dark text-white transition-all duration-300 ease-in-out z-30",
-          isSidebarOpen ? "w-64" : "w-20"
+          "hidden lg:flex flex-col bg-[#1A1C1E] text-white transition-all duration-300 ease-in-out z-30 shadow-xl",
+          isSidebarOpen ? "w-[260px]" : "w-20"
         )}>
           <SidebarContent />
         </aside>
 
-        {/* Mobile Sidebar (Drawer) */}
+        {/* Mobile Sidebar */}
         <div className={clsx(
-          "fixed inset-0 z-40 lg:hidden transition-opacity duration-300",
+          "fixed inset-0 z-50 lg:hidden transition-opacity duration-300",
           isMobileOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         )}>
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
           <aside className={clsx(
-            "absolute left-0 top-0 bottom-0 w-64 bg-dark text-white flex flex-col transform transition-transform duration-300",
+            "absolute left-0 top-0 bottom-0 w-[260px] bg-[#1A1C1E] text-white flex flex-col transform transition-transform duration-300",
             isMobileOpen ? "translate-x-0" : "-translate-x-full"
           )}>
             <button onClick={() => setMobileOpen(false)} className="absolute top-4 right-4 text-gray-400">
@@ -125,16 +124,16 @@ export default function Layout() {
           </aside>
         </div>
 
-        {/* Main Content */}
-        <div className="flex-1 flex flex-col h-screen overflow-hidden">
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col min-w-0 bg-cream">
           <Header 
             toggleSidebar={() => setSidebarOpen(!isSidebarOpen)} 
             toggleMobileMenu={() => setMobileOpen(true)}
             isSidebarOpen={isSidebarOpen} 
           />
           
-          <main className="flex-1 p-4 md:p-8 overflow-auto scroll-smooth">
-            <div className="max-w-7xl mx-auto animate-fade-in pb-20">
+          <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-8">
+            <div className="max-w-7xl mx-auto pb-10">
               <Outlet />
             </div>
           </main>
