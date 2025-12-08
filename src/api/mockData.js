@@ -6,7 +6,8 @@ export const MOCK_DATA = {
     overall: { totalOrders: 1250, totalDelivered: 1200, totalCancelled: 50, totalIncome: 45600.50 },
     comparison: {
       income: { current: 15200, previous: 14000, change: 8.5 },
-      orders: { current: 320, previous: 300, change: 6.6 }
+      orders: { current: 320, previous: 300, change: 6.6 },
+      delivered: { current: 310, previous: 290, change: 6.9 }
     },
     monthlyIncome: [
       { _id: { month: 1, year: 2024 }, totalIncome: 12000 },
@@ -14,6 +15,37 @@ export const MOCK_DATA = {
       { _id: { month: 3, year: 2024 }, totalIncome: 18600.50 },
     ]
   },
+
+  // 1. Sales Report
+  '/orders/restaurant/reports/sales': {
+    totalRevenue: 45600.50,
+    totalOrders: 1250,
+    averageOrderValue: 36.48
+  },
+
+  // 2. Order Reports (Status & Type)
+  '/orders/restaurant/reports/orders': {
+    statusReport: [
+      { _id: 'delivered', count: 1200 },
+      { _id: 'cancelled', count: 50 },
+      { _id: 'placed', count: 15 },
+      { _id: 'out_for_delivery', count: 5 }
+    ],
+    orderTypeReport: [
+      { _id: 'delivery', count: 900 },
+      { _id: 'pickup', count: 200 },
+      { _id: 'dine-in', count: 150 }
+    ]
+  },
+
+  // 3. Menu Item Performance
+  '/orders/restaurant/reports/menu-performance': [
+    { _id: 'm1', itemName: 'Chicken Tikka Masala', totalQuantitySold: 150, totalRevenue: 1800.00 },
+    { _id: 'm2', itemName: 'Cheese Burger', totalQuantitySold: 120, totalRevenue: 1080.00 },
+    { _id: 'm3', itemName: 'Veg Pizza', totalQuantitySold: 90, totalRevenue: 1350.00 },
+    { _id: 'm4', itemName: 'Coke', totalQuantitySold: 85, totalRevenue: 170.00 },
+    { _id: 'm5', itemName: 'Garlic Naan', totalQuantitySold: 60, totalRevenue: 180.00 }
+  ],
 
   // 2. Orders List
   '/orders/restaurant': [
@@ -121,11 +153,7 @@ export const MOCK_DATA = {
       reactionCount: 15
     }
   ],
-  '/announcements/stats': {
-    totalReactions: 120,
-    reactionsInLast24h: 12,
-    percentageChangeInLast24h: 5.5
-  },
+  '/announcements/stats': { totalReactions: 120, reactionsInLast24h: 12, percentageChangeInLast24h: 5.5 },
 
   // 8. Settings / Profile
   '/restaurants': {

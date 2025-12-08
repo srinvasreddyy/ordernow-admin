@@ -24,7 +24,10 @@ export default function Menu() {
 
   const toggleMutation = useMutation({
     mutationFn: async ({ id, currentStatus }) => {
-      const { data } = await api.put(`/menuItems/${id}`, { isAvailable: !currentStatus });
+      // FIX: Convert boolean to string because backend expects "true" string
+      const { data } = await api.put(`/menuItems/${id}`, { 
+        isAvailable: (!currentStatus).toString() 
+      });
       return data.data;
     },
     onSuccess: () => {

@@ -3,7 +3,7 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, ShoppingBag, UtensilsCrossed, 
   Armchair, Megaphone, Users, Settings, 
-  LogOut, Store, WifiOff, X
+  LogOut, Store, WifiOff, X, BarChart2
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import clsx from 'clsx';
@@ -11,6 +11,7 @@ import Header from './Header';
 
 const NAV_ITEMS = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
+  { name: 'Performance', href: '/performance', icon: BarChart2 }, // Added from previous context
   { name: 'Orders', href: '/orders', icon: ShoppingBag },
   { name: 'Menu', href: '/menu', icon: UtensilsCrossed },
   { name: 'Tables', href: '/tables', icon: Armchair },
@@ -21,7 +22,7 @@ const NAV_ITEMS = [
 ];
 
 export default function Layout() {
-  const { logout } = useAuth();
+  const { user, logout } = useAuth(); // Destructure user here
   const location = useLocation();
   const [isSidebarOpen, setSidebarOpen] = useState(true);
   const [isMobileOpen, setMobileOpen] = useState(false);
@@ -36,6 +37,18 @@ export default function Layout() {
   useEffect(() => {
     setMobileOpen(false);
   }, [location.pathname]);
+
+  // --- ROLE BASED FILTERING ---
+  const filteredNavItems = NAV_ITEMS.filter(item => {
+    // List of items that require 'food_delivery_and_dining' role
+    const diningOnlyItems = ['Tables', 'Reservations'];
+    
+    if (diningOnlyItems.includes(item.name)) {
+      return user?.restaurantType === 'food_delivery_and_dining';
+    }
+    
+    return true;
+  });
 
   const SidebarContent = () => (
     <>
@@ -53,7 +66,7 @@ export default function Layout() {
       </div>
 
       <nav className="flex-1 py-6 px-4 space-y-1 overflow-y-auto custom-scrollbar">
-        {NAV_ITEMS.map((item) => {
+        {filteredNavItems.map((item) => {
           const isActive = location.pathname === item.href || (item.href !== '/' && location.pathname.startsWith(item.href));
           return (
             <Link

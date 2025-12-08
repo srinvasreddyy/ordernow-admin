@@ -17,28 +17,36 @@ export default function Settings() {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const { data } = await api.get(`/restaurants/${user._id}`);
+        // FIX: Changed from `/restaurants/${user._id}` to `/restaurants/me`
+        const { data } = await api.get('/restaurants/me');
         const r = data.data;
+        
         resetProfile({
           restaurantName: r.restaurantName,
           ownerFullName: r.ownerFullName,
           phoneNumber: r.phoneNumber,
           primaryContactName: r.primaryContactName,
         });
+        
         resetConfig({
           handlingChargesPercentage: r.handlingChargesPercentage,
-          freeDeliveryRadius: r.deliverySettings.freeDeliveryRadius,
-          chargePerMile: r.deliverySettings.chargePerMile,
-          maxDeliveryRadius: r.deliverySettings.maxDeliveryRadius,
+          freeDeliveryRadius: r.deliverySettings?.freeDeliveryRadius,
+          chargePerMile: r.deliverySettings?.chargePerMile,
+          maxDeliveryRadius: r.deliverySettings?.maxDeliveryRadius,
           acceptsDining: r.acceptsDining,
         });
+        
         setIsLoading(false);
       } catch (error) {
-        toast.error("Failed to load settings");
+        console.error(error);
+        toast.error(error.response?.data?.message || "Failed to load settings");
+        setIsLoading(false);
       }
     };
-    if (user?._id) fetchSettings();
-  }, [user?._id, resetProfile, resetConfig]);
+    
+    // Only fetch if we have a user, though /me relies on the cookie/token essentially
+    if (user) fetchSettings();
+  }, [user, resetProfile, resetConfig]);
 
   const onProfileSubmit = async (data) => {
     try {
@@ -154,16 +162,19 @@ export default function Settings() {
                   <input type="password" {...registerConfig('stripeSecretKey')} className="input-field" placeholder="••••••••••••••••" />
                 </div>
                 
-                <div className="col-span-2 border-t border-gray-100 pt-6">
-                    <h4 className="text-sm font-bold text-dark mb-4">Operational Features</h4>
-                    <label className="flex items-center gap-3 p-4 border border-gray-200 rounded-xl hover:border-primary/50 transition-colors cursor-pointer">
-                        <input type="checkbox" {...registerConfig('acceptsDining')} className="rounded text-primary focus:ring-primary/25 w-5 h-5 border-gray-300" />
-                        <div>
-                            <span className="block text-sm font-bold text-dark">Enable Table Management</span>
-                            <span className="block text-xs text-secondary">Allow dining in and table reservations.</span>
-                        </div>
-                    </label>
-                </div>
+                {/* Only show Table Management toggle for Dining Restaurants */}
+                {user?.restaurantType === 'food_delivery_and_dining' && (
+                  <div className="col-span-2 border-t border-gray-100 pt-6">
+                      <h4 className="text-sm font-bold text-dark mb-4">Operational Features</h4>
+                      <label className="flex items-center gap-3 p-4 border border-gray-200 rounded-xl hover:border-primary/50 transition-colors cursor-pointer">
+                          <input type="checkbox" {...registerConfig('acceptsDining')} className="rounded text-primary focus:ring-primary/25 w-5 h-5 border-gray-300" />
+                          <div>
+                              <span className="block text-sm font-bold text-dark">Enable Table Management</span>
+                              <span className="block text-xs text-secondary">Allow dining in and table reservations.</span>
+                          </div>
+                      </label>
+                  </div>
+                )}
               </div>
 
               <div className="flex justify-end pt-4">
