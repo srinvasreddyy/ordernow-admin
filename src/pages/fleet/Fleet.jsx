@@ -48,7 +48,7 @@ export default function Fleet() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[1,2,3].map(i => <div key={i} className="h-40 bg-gray-100 rounded-xl animate-pulse"/>)}
         </div>
-      ) : partners?.length === 0 ? (
+      ) : !partners?.length ? (
         <div className="card-base p-16 text-center text-secondary border-dashed">No drivers found.</div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

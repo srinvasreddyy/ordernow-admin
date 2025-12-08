@@ -62,7 +62,7 @@ export default function Orders() {
       <div className="flex-1 overflow-y-auto pb-10 pr-1">
         {isLoading ? (
           <div className="flex items-center justify-center h-64 text-secondary">Loading orders...</div>
-        ) : orders?.length === 0 ? (
+        ) : !orders?.length ? (
           <div className="flex flex-col items-center justify-center h-full text-secondary animate-scale-in">
             <Inbox className="w-12 h-12 text-gray-300 mb-2" />
             <p>No orders in this stage</p>

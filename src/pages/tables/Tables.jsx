@@ -54,7 +54,7 @@ export default function Tables() {
         <button onClick={() => openModal()} className="btn-primary"><Plus className="w-5 h-5" /> Add Table</button>
       </div>
 
-      {isLoading ? <div className="text-center py-10">Loading...</div> : tables?.length === 0 ? (
+      {isLoading ? <div className="text-center py-10">Loading...</div> : !tables?.length ? (
         <div className="card-base p-16 text-center text-secondary border-dashed">No tables found.</div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">

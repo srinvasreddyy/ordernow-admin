@@ -102,7 +102,7 @@ export default function Marketing() {
 
       {/* Content Area */}
       {activeTab === 'list' ? (
-        isLoading ? <div className="p-10 text-center text-secondary">Loading...</div> : announcements?.length === 0 ? (
+        isLoading ? <div className="p-10 text-center text-secondary">Loading...</div> : !announcements?.length ? (
             <div className="card-base p-16 text-center text-secondary border-dashed">No active campaigns.</div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -4,12 +4,13 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, Plus, Trash2, Save, Image as ImageIcon, Layers, Tag, Box } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Save, Image as ImageIcon, Layers, Tag, Box, Info } from 'lucide-react';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
+import clsx from 'clsx';
 
-// ... (Keep existing Zod schemas same as before)
+// --- Zod Schemas ---
 const variantSchema = z.object({
   variantName: z.string().min(1, "Name required"),
   additionalPrice: z.coerce.number().min(0)
@@ -96,12 +97,10 @@ export default function AddEditMenu() {
     const formData = new FormData();
     Object.keys(data).forEach(key => {
         if (key === 'categoryNames') {
-            const cats = data.categoryNames.split(',').map(s => s.trim()).filter(Boolean);
+            const cats = data.categoryNames ? data.categoryNames.split(',').map(s => s.trim()).filter(Boolean) : [];
             formData.append('categoryNames', JSON.stringify(cats));
         } else if (['variantGroups', 'addonGroups'].includes(key)) {
             formData.append(key, JSON.stringify(data[key]));
-        } else if (key === 'isFood' || key === 'isBestseller') {
-             formData.append(key, data[key]);
         } else {
              formData.append(key, data[key]);
         }
@@ -121,11 +120,12 @@ export default function AddEditMenu() {
     <button
         type="button"
         onClick={() => setActiveTab(id)}
-        className={`flex items-center gap-2 px-6 py-3 text-sm font-semibold rounded-lg transition-all ${
+        className={clsx(
+            "flex items-center gap-2 px-5 py-2.5 text-sm font-medium rounded-lg transition-all",
             activeTab === id 
-            ? 'bg-primary text-white shadow-md shadow-primary/25' 
-            : 'text-secondary hover:bg-white hover:text-dark'
-        }`}
+            ? 'bg-white text-primary shadow-sm ring-1 ring-gray-200' 
+            : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
+        )}
     >
         {Icon && <Icon className="w-4 h-4" />}
         {label}
@@ -133,168 +133,247 @@ export default function AddEditMenu() {
   );
 
   return (
-    <div className="max-w-5xl mx-auto pb-24">
-        <div className="flex items-center gap-4 mb-6">
-            <button onClick={() => navigate('/menu')} className="p-2 hover:bg-gray-200 rounded-full text-secondary transition-colors">
+    <div className="max-w-4xl mx-auto pb-32 animate-fade-in">
+        {/* Header */}
+        <div className="flex items-center gap-4 mb-8">
+            <button onClick={() => navigate('/menu')} className="p-2.5 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 text-gray-500 transition-colors shadow-sm">
                 <ArrowLeft className="w-5 h-5" />
             </button>
-            <h1 className="text-2xl font-bold text-dark">{isEditMode ? 'Edit Menu Item' : 'Create New Item'}</h1>
+            <div>
+                <h1 className="text-2xl font-bold text-dark">{isEditMode ? 'Edit Menu Item' : 'New Menu Item'}</h1>
+                <p className="text-sm text-secondary">Fill in the details to add a product to your catalog.</p>
+            </div>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            <div className="bg-gray-100/50 p-1.5 rounded-xl inline-flex gap-1 mb-4">
-                <TabButton id="basic" label="Basic Info" icon={Box} />
-                <TabButton id="variants" label="Variants" icon={Layers} />
-                <TabButton id="addons" label="Add-ons" icon={Tag} />
+            {/* Tabs */}
+            <div className="bg-gray-100/80 p-1.5 rounded-xl inline-flex gap-1">
+                <TabButton id="basic" label="Basic Details" icon={Box} />
+                <TabButton id="variants" label="Variants & Sizes" icon={Layers} />
+                <TabButton id="addons" label="Add-ons & Extras" icon={Tag} />
             </div>
 
-            <div className={activeTab === 'basic' ? 'block animate-fade-in' : 'hidden'}>
-                <div className="card-base card-body space-y-6">
+            {/* Basic Info Tab */}
+            <div className={clsx(activeTab === 'basic' ? 'block' : 'hidden', "space-y-6")}>
+                <div className="card-base p-8 space-y-6">
+                    <h3 className="text-lg font-bold text-dark border-b border-gray-100 pb-4 mb-2">Product Information</h3>
+                    
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="col-span-2">
                             <label className="input-label">Item Name</label>
-                            <input {...register('itemName')} type="text" className="input-field" placeholder="e.g. Chicken Burger" />
-                            {errors.itemName && <span className="text-red-500 text-xs mt-1">{errors.itemName.message}</span>}
+                            <input {...register('itemName')} className="input-field" placeholder="e.g. Classic Cheese Burger" />
+                            {errors.itemName && <span className="text-red-500 text-xs mt-1 block">{errors.itemName.message}</span>}
                         </div>
                         
                         <div className="col-span-2">
                             <label className="input-label">Description</label>
-                            <textarea {...register('description')} rows={3} className="input-field" placeholder="Describe the dish..." />
+                            <textarea {...register('description')} rows={4} className="input-field resize-none" placeholder="A brief description of the dish..." />
                         </div>
 
                         <div>
                             <label className="input-label">Base Price (£)</label>
-                            <input {...register('basePrice')} type="number" step="0.01" className="input-field" />
-                            {errors.basePrice && <span className="text-red-500 text-xs mt-1">{errors.basePrice.message}</span>}
+                            <div className="relative">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">£</span>
+                                <input {...register('basePrice')} type="number" step="0.01" className="input-field pl-8" placeholder="0.00" />
+                            </div>
+                            {errors.basePrice && <span className="text-red-500 text-xs mt-1 block">{errors.basePrice.message}</span>}
                         </div>
 
                         <div>
-                            <label className="input-label">Item Type</label>
+                            <label className="input-label">Dietary Type</label>
                             <select {...register('itemType')} className="input-field">
-                                <option value="veg">Veg</option>
-                                <option value="non-veg">Non-Veg</option>
-                                <option value="egg">Egg</option>
+                                <option value="veg">Vegetarian</option>
+                                <option value="non-veg">Non-Vegetarian</option>
+                                <option value="egg">Contains Egg</option>
                             </select>
                         </div>
 
                         <div className="col-span-2">
-                            <label className="input-label">Categories</label>
-                            <input {...register('categoryNames')} type="text" placeholder="e.g. Starters, Spicy, New" className="input-field" />
-                            <p className="text-xs text-secondary mt-1">Separate tags with commas.</p>
-                        </div>
-
-                        <div className="flex items-center gap-6 pt-2">
-                            <label className="flex items-center gap-2 cursor-pointer group">
-                                <input {...register('isBestseller')} type="checkbox" className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary/25 cursor-pointer" />
-                                <span className="text-sm font-medium text-dark group-hover:text-primary transition-colors">Mark as Bestseller</span>
-                            </label>
-                            <label className="flex items-center gap-2 cursor-pointer group">
-                                <input {...register('isFood')} type="checkbox" className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary/25 cursor-pointer" disabled={user?.restaurantType === 'groceries'} />
-                                <span className="text-sm font-medium text-dark group-hover:text-primary transition-colors">Is Food Item?</span>
-                            </label>
+                            <label className="input-label">Category Tags</label>
+                            <input {...register('categoryNames')} className="input-field" placeholder="e.g. Burgers, Lunch, Spicy" />
+                            <p className="text-xs text-secondary mt-1.5 flex items-center gap-1">
+                                <Info className="w-3 h-3" /> Separate multiple categories with commas.
+                            </p>
                         </div>
                     </div>
 
-                    <div className="border-t border-gray-100 pt-6">
-                        <h3 className="font-bold text-dark mb-4 flex items-center gap-2"><ImageIcon className="w-4 h-4"/> Media</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="flex gap-6 pt-2">
+                        <label className="flex items-center gap-3 p-4 border border-gray-200 rounded-xl cursor-pointer hover:border-primary/50 hover:bg-orange-50/30 transition-all flex-1">
+                            <input {...register('isBestseller')} type="checkbox" className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary/25" />
                             <div>
-                                <label className="input-label mb-2 block">Display Image</label>
-                                <label className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:bg-gray-50 transition-all cursor-pointer block">
-                                    <ImageIcon className="mx-auto h-8 w-8 text-gray-400 mb-2" />
-                                    <span className="text-sm text-primary font-medium">Click to upload</span>
-                                    <input type="file" id="displayImage" accept="image/*" className="hidden"/>
-                                </label>
+                                <span className="block text-sm font-bold text-dark">Mark as Bestseller</span>
+                                <span className="block text-xs text-secondary">Highlight this item on the menu</span>
                             </div>
+                        </label>
+                        <label className="flex items-center gap-3 p-4 border border-gray-200 rounded-xl cursor-pointer hover:border-primary/50 hover:bg-orange-50/30 transition-all flex-1">
+                            <input {...register('isFood')} type="checkbox" className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary/25" disabled={user?.restaurantType === 'groceries'} />
                             <div>
-                                <label className="input-label mb-2 block">Gallery Images</label>
-                                <label className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:bg-gray-50 transition-all cursor-pointer block">
-                                    <Layers className="mx-auto h-8 w-8 text-gray-400 mb-2" />
-                                    <span className="text-sm text-primary font-medium">Click to upload multiple</span>
-                                    <input type="file" id="galleryImages" multiple accept="image/*" className="hidden"/>
-                                </label>
+                                <span className="block text-sm font-bold text-dark">Is Food Item?</span>
+                                <span className="block text-xs text-secondary">Toggle off for non-food goods</span>
                             </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div className="card-base p-8">
+                    <h3 className="text-lg font-bold text-dark border-b border-gray-100 pb-4 mb-6">Media</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label className="input-label mb-2">Display Image</label>
+                            <label className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:bg-gray-50 hover:border-primary/50 transition-all group">
+                                <div className="p-4 bg-gray-100 rounded-full mb-3 group-hover:bg-white group-hover:shadow-sm transition-all">
+                                    <ImageIcon className="w-6 h-6 text-gray-400 group-hover:text-primary" />
+                                </div>
+                                <span className="text-sm font-medium text-gray-600">Click to upload main image</span>
+                                <span className="text-xs text-gray-400 mt-1">PNG, JPG up to 5MB</span>
+                                <input type="file" id="displayImage" accept="image/*" className="hidden"/>
+                            </label>
+                        </div>
+                        <div>
+                            <label className="input-label mb-2">Gallery Images</label>
+                            <label className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:bg-gray-50 hover:border-primary/50 transition-all group">
+                                <div className="p-4 bg-gray-100 rounded-full mb-3 group-hover:bg-white group-hover:shadow-sm transition-all">
+                                    <Layers className="w-6 h-6 text-gray-400 group-hover:text-primary" />
+                                </div>
+                                <span className="text-sm font-medium text-gray-600">Click to upload gallery</span>
+                                <span className="text-xs text-gray-400 mt-1">Multiple files allowed</span>
+                                <input type="file" id="galleryImages" multiple accept="image/*" className="hidden"/>
+                            </label>
                         </div>
                     </div>
                 </div>
             </div>
 
             {/* Variants Tab */}
-            <div className={activeTab === 'variants' ? 'block animate-fade-in' : 'hidden'}>
-                <div className="space-y-4">
-                    {variantGroups.map((group, index) => (
-                        <div key={group.id} className="card-base p-6">
-                            <div className="flex justify-between items-start mb-4">
-                                <div className="flex-1 mr-4">
-                                    <label className="text-xs font-bold text-secondary uppercase tracking-wider mb-1 block">Group Title</label>
-                                    <input {...register(`variantGroups.${index}.groupTitle`)} placeholder="e.g. Size" className="input-field" />
-                                </div>
-                                <button type="button" onClick={() => removeVariantGroup(index)} className="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors">
-                                    <Trash2 className="w-4 h-4" />
-                                </button>
+            <div className={clsx(activeTab === 'variants' ? 'block' : 'hidden', "space-y-6")}>
+                <div className="flex justify-between items-center bg-blue-50 p-4 rounded-xl border border-blue-100">
+                    <div className="flex gap-3">
+                        <Info className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+                        <p className="text-sm text-blue-800">Use variants for item variations like Size (Small, Large) or Base (Thin Crust, Deep Dish).</p>
+                    </div>
+                </div>
+
+                {variantGroups.map((group, index) => (
+                    <div key={group.id} className="card-base overflow-visible">
+                        <div className="card-header bg-gray-50/50">
+                            <h4 className="font-bold text-dark">Variant Group {index + 1}</h4>
+                            <button type="button" onClick={() => removeVariantGroup(index)} className="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-lg transition-colors">
+                                <Trash2 className="w-4 h-4" />
+                            </button>
+                        </div>
+                        <div className="p-6">
+                            <div className="mb-6">
+                                <label className="input-label">Group Title</label>
+                                <input {...register(`variantGroups.${index}.groupTitle`)} placeholder="e.g. Size" className="input-field" />
                             </div>
-                            <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
-                                <p className="text-sm font-semibold text-dark mb-2">Options</p>
-                                <div className="grid grid-cols-2 gap-3">
-                                    <input placeholder="Name (e.g. Small)" {...register(`variantGroups.${index}.variants.0.variantName`)} className="input-field bg-white" />
-                                    <input type="number" placeholder="Extra Price (£)" {...register(`variantGroups.${index}.variants.0.additionalPrice`)} className="input-field bg-white" />
+                            
+                            <div className="bg-gray-50 rounded-xl p-5 border border-gray-200">
+                                <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3 block">Option Example</label>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="input-label text-xs">Name</label>
+                                        <input placeholder="e.g. Small" {...register(`variantGroups.${index}.variants.0.variantName`)} className="input-field bg-white" />
+                                    </div>
+                                    <div>
+                                        <label className="input-label text-xs">Extra Price (£)</label>
+                                        <input type="number" placeholder="0.00" {...register(`variantGroups.${index}.variants.0.additionalPrice`)} className="input-field bg-white" />
+                                    </div>
                                 </div>
-                                <p className="text-xs text-orange-600 mt-2 font-medium">Note: Save first to edit detailed variants.</p>
+                                <p className="text-xs text-secondary mt-3">
+                                    * You can add more options to this group after saving the item.
+                                </p>
                             </div>
                         </div>
-                    ))}
-                    <button type="button" onClick={() => addVariantGroup({ groupTitle: "", variants: [{ variantName: "", additionalPrice: 0 }] })} className="w-full py-4 border-2 border-dashed border-gray-300 rounded-xl text-secondary hover:border-primary hover:text-primary transition-all flex items-center justify-center gap-2 font-medium">
-                        <Plus className="w-5 h-5" /> Add Variant Group
-                    </button>
-                </div>
+                    </div>
+                ))}
+                
+                <button 
+                    type="button" 
+                    onClick={() => addVariantGroup({ groupTitle: "", variants: [{ variantName: "", additionalPrice: 0 }] })} 
+                    className="w-full py-4 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-primary hover:text-primary hover:bg-orange-50 transition-all flex items-center justify-center gap-2 font-medium"
+                >
+                    <Plus className="w-5 h-5" /> Add New Variant Group
+                </button>
             </div>
 
             {/* Addons Tab */}
-            <div className={activeTab === 'addons' ? 'block animate-fade-in' : 'hidden'}>
-                <div className="space-y-4">
-                    {addonGroups.map((group, index) => (
-                        <div key={group.id} className="card-base p-6">
-                            <div className="flex justify-between items-start mb-4 gap-4">
-                                <div className="flex-1">
-                                    <label className="text-xs font-bold text-secondary uppercase tracking-wider mb-1 block">Group Title</label>
+            <div className={clsx(activeTab === 'addons' ? 'block' : 'hidden', "space-y-6")}>
+                <div className="flex justify-between items-center bg-purple-50 p-4 rounded-xl border border-purple-100">
+                    <div className="flex gap-3">
+                        <Info className="w-5 h-5 text-purple-600 shrink-0 mt-0.5" />
+                        <p className="text-sm text-purple-800">Add-ons are for extra toppings, sides, or optional extras.</p>
+                    </div>
+                </div>
+
+                {addonGroups.map((group, index) => (
+                    <div key={group.id} className="card-base overflow-visible">
+                        <div className="card-header bg-gray-50/50">
+                            <h4 className="font-bold text-dark">Add-on Group {index + 1}</h4>
+                            <button type="button" onClick={() => removeAddonGroup(index)} className="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-lg transition-colors">
+                                <Trash2 className="w-4 h-4" />
+                            </button>
+                        </div>
+                        <div className="p-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <div>
+                                    <label className="input-label">Group Title</label>
                                     <input {...register(`addonGroups.${index}.groupTitle`)} placeholder="e.g. Extra Toppings" className="input-field" />
                                 </div>
-                                <div className="w-1/3">
-                                    <label className="text-xs font-bold text-secondary uppercase tracking-wider mb-1 block">Type</label>
+                                <div>
+                                    <label className="input-label">Selection Requirement</label>
                                     <select {...register(`addonGroups.${index}.customizationBehavior`)} className="input-field">
-                                        <option value="optional">Optional</option>
-                                        <option value="compulsory">Compulsory</option>
+                                        <option value="optional">Optional (Customer can skip)</option>
+                                        <option value="compulsory">Compulsory (Must select)</option>
                                     </select>
                                 </div>
-                                <button type="button" onClick={() => removeAddonGroup(index)} className="text-red-500 hover:bg-red-50 p-2 rounded-lg mt-5">
-                                    <Trash2 className="w-4 h-4" />
-                                </button>
                             </div>
-                            <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
-                                <div className="grid grid-cols-2 gap-3">
-                                    <input placeholder="Option Name (e.g. Cheese)" {...register(`addonGroups.${index}.addons.0.optionTitle`)} className="input-field bg-white" />
-                                    <input type="number" placeholder="Price (£)" {...register(`addonGroups.${index}.addons.0.price`)} className="input-field bg-white" />
+
+                            <div className="bg-gray-50 rounded-xl p-5 border border-gray-200">
+                                <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3 block">Option Example</label>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="input-label text-xs">Name</label>
+                                        <input placeholder="e.g. Extra Cheese" {...register(`addonGroups.${index}.addons.0.optionTitle`)} className="input-field bg-white" />
+                                    </div>
+                                    <div>
+                                        <label className="input-label text-xs">Price (£)</label>
+                                        <input type="number" placeholder="0.00" {...register(`addonGroups.${index}.addons.0.price`)} className="input-field bg-white" />
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    ))}
-                    <button type="button" onClick={() => addAddonGroup({ groupTitle: "", customizationBehavior: "optional", addons: [{ optionTitle: "", price: 0 }] })} className="w-full py-4 border-2 border-dashed border-gray-300 rounded-xl text-secondary hover:border-primary hover:text-primary transition-all flex items-center justify-center gap-2 font-medium">
-                        <Plus className="w-5 h-5" /> Add Add-on Group
-                    </button>
-                </div>
+                    </div>
+                ))}
+
+                <button 
+                    type="button" 
+                    onClick={() => addAddonGroup({ groupTitle: "", customizationBehavior: "optional", addons: [{ optionTitle: "", price: 0 }] })} 
+                    className="w-full py-4 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-primary hover:text-primary hover:bg-orange-50 transition-all flex items-center justify-center gap-2 font-medium"
+                >
+                    <Plus className="w-5 h-5" /> Add New Add-on Group
+                </button>
             </div>
 
-            {/* Sticky Footer */}
-            <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-40 sm:pl-[280px]">
-                <div className="max-w-5xl mx-auto flex justify-end">
-                    <button 
-                        type="submit" 
-                        disabled={isSubmitting}
-                        className="btn-primary w-full sm:w-auto shadow-xl"
-                    >
-                        <Save className="w-5 h-5" />
-                        {isSubmitting ? 'Saving...' : 'Save Changes'}
-                    </button>
+            {/* Floating Action Footer */}
+            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-full max-w-4xl px-4 z-30">
+                <div className="bg-dark text-white p-4 rounded-2xl shadow-2xl flex justify-between items-center border border-gray-800">
+                    <div className="hidden sm:block pl-2">
+                        <span className="text-sm text-gray-400">Status:</span>
+                        <span className="ml-2 font-semibold text-green-400">Ready to Save</span>
+                    </div>
+                    <div className="flex gap-3 w-full sm:w-auto">
+                        <button type="button" onClick={() => navigate('/menu')} className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-medium transition-colors">
+                            Cancel
+                        </button>
+                        <button 
+                            type="submit" 
+                            disabled={isSubmitting}
+                            className="flex-1 sm:flex-none px-8 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold shadow-lg shadow-primary/25 transition-all flex items-center justify-center gap-2"
+                        >
+                            <Save className="w-4 h-4" />
+                            {isSubmitting ? 'Saving...' : 'Save Item'}
+                        </button>
+                    </div>
                 </div>
             </div>
         </form>
