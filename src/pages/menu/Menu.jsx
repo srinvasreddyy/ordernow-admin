@@ -13,10 +13,11 @@ export default function Menu() {
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState('all');
 
+  // FIX: Updated API endpoint to match backend route (/api/menu-items)
   const { data: menuItems, isLoading } = useQuery({
     queryKey: ['menuItems', user?._id],
     queryFn: async () => {
-      const { data } = await api.get(`/menuItems/restaurant/${user._id}?limit=100`);
+      const { data } = await api.get(`/menu-items/restaurant/${user._id}?limit=100`);
       return data.data;
     },
     enabled: !!user?._id
@@ -24,8 +25,8 @@ export default function Menu() {
 
   const toggleMutation = useMutation({
     mutationFn: async ({ id, currentStatus }) => {
-      // FIX: Convert boolean to string because backend expects "true" string
-      const { data } = await api.put(`/menuItems/${id}`, { 
+      // FIX: Updated endpoint
+      const { data } = await api.put(`/menu-items/${id}`, { 
         isAvailable: (!currentStatus).toString() 
       });
       return data.data;
@@ -38,7 +39,7 @@ export default function Menu() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async (id) => api.delete(`/menuItems/${id}`),
+    mutationFn: async (id) => api.delete(`/menu-items/${id}`), // FIX: Updated endpoint
     onSuccess: () => {
         queryClient.invalidateQueries(['menuItems']);
         toast.success("Item deleted");

@@ -54,11 +54,13 @@ export default function Header({ toggleSidebar, toggleMobileMenu, isSidebarOpen 
           disabled={isToggling}
           className={`
             flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full border transition-all duration-300
-            ${user?.isActive ? 'bg-green-50 border-green-200 hover:bg-green-100' : 'bg-gray-50 border-gray-200 hover:bg-gray-100'}
+            ${user?.isActive 
+              ? 'bg-green-50 border-green-200 hover:bg-green-100' 
+              : 'bg-red-50 border-red-200 hover:bg-red-100'}
           `}
         >
-          <span className={`w-2 h-2 rounded-full ${user?.isActive ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`} />
-          <span className={`text-xs font-bold tracking-wide ${user?.isActive ? 'text-green-700' : 'text-secondary'}`}>
+          <span className={`w-2 h-2 rounded-full ${user?.isActive ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
+          <span className={`text-xs font-bold tracking-wide ${user?.isActive ? 'text-green-700' : 'text-red-700'}`}>
             {user?.isActive ? 'OPEN FOR ORDERS' : 'STORE CLOSED'}
           </span>
         </button>
