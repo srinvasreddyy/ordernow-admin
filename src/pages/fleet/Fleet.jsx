@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
-import { UserPlus, Phone, Mail, Truck, CircleDot, Trash2, Edit2 } from 'lucide-react'; // Added Edit2 icon
+import { UserPlus, Phone, Lock, Truck, CircleDot, Trash2, Edit2, User } from 'lucide-react'; // Added User, Lock icon
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
 import clsx from 'clsx';
@@ -9,7 +9,7 @@ import clsx from 'clsx';
 export default function Fleet() {
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingDriver, setEditingDriver] = useState(null); // Track which driver is being edited
+  const [editingDriver, setEditingDriver] = useState(null); 
 
   const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm();
 
@@ -32,7 +32,7 @@ export default function Fleet() {
     onError: (err) => toast.error(err.response?.data?.message || "Failed to add")
   });
 
-  // Update Mutation (New)
+  // Update Mutation
   const updateMutation = useMutation({
     mutationFn: async (data) => api.put(`/owner/delivery-partners/${editingDriver._id}`, data),
     onSuccess: () => {
@@ -65,7 +65,8 @@ export default function Fleet() {
     setEditingDriver(null);
     reset({
       fullName: '',
-      email: '',
+      username: '',   // Changed from email
+      password: '',   // Added password
       phoneNumber: '',
       deliveryPartnerProfile: { vehicleType: 'Bike', vehicleNumber: '' }
     });
@@ -76,7 +77,8 @@ export default function Fleet() {
     setEditingDriver(driver);
     reset({
       fullName: driver.fullName,
-      email: driver.email,
+      username: driver.username, // Changed from email
+      // Password is usually not pre-filled in edit for security
       phoneNumber: driver.phoneNumber,
       deliveryPartnerProfile: {
         vehicleType: driver.deliveryPartnerProfile?.vehicleType || 'Bike',
@@ -115,7 +117,6 @@ export default function Fleet() {
           {partners.map((partner) => (
             <div key={partner._id} className="card-base p-6 flex flex-col gap-4 relative group">
               
-              {/* Action Buttons */}
               <div className="absolute top-4 right-4 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button 
                   onClick={() => openEditModal(partner)}
@@ -157,8 +158,8 @@ export default function Fleet() {
 
               <div className="space-y-3 text-sm text-secondary bg-gray-50 p-4 rounded-xl border border-gray-100">
                 <div className="flex items-center gap-3">
-                  <Mail className="w-4 h-4 text-gray-400" />
-                  {partner.email}
+                  <User className="w-4 h-4 text-gray-400" />
+                  <span className="font-medium text-dark">{partner.username}</span> {/* Display Username */}
                 </div>
                 <div className="flex items-center gap-3">
                   <Phone className="w-4 h-4 text-gray-400" />
@@ -186,20 +187,34 @@ export default function Fleet() {
                 <label className="input-label">Full Name</label>
                 <input {...register('fullName', { required: true })} className="input-field" />
               </div>
+              
+              {/* Username Field */}
               <div>
-                <label className="input-label">Email</label>
+                <label className="input-label">Username</label>
                 <input 
-                  type="email" 
-                  {...register('email', { required: true })} 
+                  type="text" 
+                  {...register('username', { required: true })} 
                   className={clsx(
                     "input-field",
                     editingDriver && "bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200 focus:ring-0"
                   )}
-                  readOnly={!!editingDriver} // Prevent typing
-                  title={editingDriver ? "Email cannot be changed" : ""}
+                  readOnly={!!editingDriver} // Prevent changing username in edit mode
                 />
-                {editingDriver && <p className="text-xs text-secondary mt-1">Email cannot be changed.</p>}
               </div>
+
+              {/* Password Field (Only for new drivers) */}
+              {!editingDriver && (
+                <div>
+                    <label className="input-label">Password</label>
+                    <input 
+                        type="password"
+                        {...register('password', { required: true, minLength: 6 })} 
+                        className="input-field"
+                        placeholder="Assign a login password"
+                    />
+                </div>
+              )}
+
               <div>
                 <label className="input-label">Phone Number</label>
                 <input {...register('phoneNumber', { required: true })} className="input-field" />
