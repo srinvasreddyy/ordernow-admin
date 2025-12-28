@@ -92,7 +92,7 @@ export default function AddEditMenu() {
   const { data: menuItemData } = useQuery({
     queryKey: ['menuItem', id],
     queryFn: async () => {
-        const { data } = await api.get(`/menuItems/${id}`);
+        const { data } = await api.get(`/menu-items/${id}`);
         return data.data;
     },
     enabled: isEditMode,
@@ -117,7 +117,7 @@ export default function AddEditMenu() {
   const mutation = useMutation({
     mutationFn: async (formData) => {
         const config = { headers: { 'Content-Type': 'multipart/form-data' } };
-        isEditMode ? await api.put(`/menuItems/${id}`, formData, config) : await api.post('/menuItems', formData, config);
+        isEditMode ? await api.put(`/menu-items/${id}`, formData, config) : await api.post('/menu-items', formData, config);
     },
     onSuccess: () => {
         queryClient.invalidateQueries(['menuItems']);
