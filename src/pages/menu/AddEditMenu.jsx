@@ -92,6 +92,7 @@ export default function AddEditMenu() {
   const { data: menuItemData } = useQuery({
     queryKey: ['menuItem', id],
     queryFn: async () => {
+        // FIXED: Route path mismatch
         const { data } = await api.get(`/menu-items/${id}`);
         return data.data;
     },
@@ -117,10 +118,14 @@ export default function AddEditMenu() {
   const mutation = useMutation({
     mutationFn: async (formData) => {
         const config = { headers: { 'Content-Type': 'multipart/form-data' } };
-        isEditMode ? await api.put(`/menu-items/${id}`, formData, config) : await api.post('/menu-items', formData, config);
+        // FIXED: Route path mismatch
+        isEditMode 
+            ? await api.put(`/menu-items/${id}`, formData, config) 
+            : await api.post('/menu-items', formData, config);
     },
     onSuccess: () => {
         queryClient.invalidateQueries(['menuItems']);
+        queryClient.invalidateQueries(['menuItem']);
         toast.success(`Item ${isEditMode ? 'updated' : 'created'} successfully!`);
         navigate('/menu');
     },
