@@ -163,7 +163,7 @@ export default function Register() {
         }
       }
 
-      await api.post('/ownerRegistration/register', formData, {
+      await api.post('/owner-registrations/register', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 
