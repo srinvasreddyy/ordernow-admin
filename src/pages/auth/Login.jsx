@@ -5,7 +5,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
-import { ArrowRight, Mail, Lock } from 'lucide-react';
+import { ArrowRight, Mail, Lock, AlertTriangle } from 'lucide-react';
 
 export default function Login() {
   const [step, setStep] = useState(1);
@@ -28,11 +28,25 @@ export default function Login() {
   const onVerifyOTP = async (data) => {
     try {
       const response = await api.post('/auth/owner/verify-otp', { email, otp: data.otp });
+      // ONLY if this succeeds (status 200) do we login
       login(response.data.owner);
       toast.success('Welcome back!');
       navigate('/');
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Invalid OTP');
+      // Logic for 403 Forbidden (Pending Approval)
+      if (error.response?.status === 403 && error.response?.data?.error_code === 'APPROVAL_PENDING') {
+        toast((t) => (
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="w-6 h-6 text-amber-500 shrink-0" />
+            <div>
+              <p className="font-semibold text-gray-900">Application Pending</p>
+              <p className="text-sm text-gray-600">Please wait for Super Admin approval before logging in.</p>
+            </div>
+          </div>
+        ), { duration: 6000 });
+      } else {
+        toast.error(error.response?.data?.message || 'Invalid OTP');
+      }
     }
   };
 
