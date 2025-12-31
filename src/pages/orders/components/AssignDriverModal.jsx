@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { X, Search, Truck, Star } from 'lucide-react';
 import api from '../../../api/axios';
 import toast from 'react-hot-toast';
+import clsx from 'clsx';
 
 export default function AssignDriverModal({ order, onClose, onSuccess }) {
   const [selectedDriverId, setSelectedDriverId] = useState(null);
