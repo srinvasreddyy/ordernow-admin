@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronDown, ChevronUp, MapPin, User, Clock, Truck, CheckCircle2, AlertCircle } from 'lucide-react';
+import { ChevronDown, ChevronUp, MapPin, User, Clock, Truck, CheckCircle2, AlertCircle, ClipboardList } from 'lucide-react';
 import clsx from 'clsx';
 import api from '../../../api/axios';
 import toast from 'react-hot-toast';
@@ -188,25 +188,81 @@ export default function OrderCard({ order, activeTab, onAssignDriver, refetch })
           onClick={() => setIsExpanded(!isExpanded)}
           className="w-full py-3 bg-white text-xs font-bold text-gray-500 hover:text-primary hover:bg-gray-50 transition-all flex justify-center items-center gap-2 uppercase tracking-wider"
         >
-          {isExpanded ? 'Hide Details' : 'View Order Details'}
+          {isExpanded ? 'Hide Details' : 'View Full Order'}
           {isExpanded ? <ChevronUp className="w-3 h-3"/> : <ChevronDown className="w-3 h-3"/>}
         </button>
 
-        <div className={clsx("bg-gray-50 transition-all duration-300 overflow-hidden", isExpanded ? "max-h-80 overflow-y-auto border-t border-gray-100" : "max-h-0")}>
-           <div className="p-5 space-y-3">
+        <div className={clsx("bg-gray-50 transition-all duration-300 overflow-hidden", isExpanded ? "max-h-[500px] overflow-y-auto border-t border-gray-100" : "max-h-0")}>
+           <div className="p-5 space-y-4">
+              
+              {/* Ordered Items List */}
               {order.orderedItems.map((item, i) => (
-                  <div key={i} className="flex justify-between text-sm py-1 border-b border-gray-200/50 last:border-0">
-                      <div className="flex gap-3">
-                          <span className="font-bold text-primary w-5">{item.quantity}x</span>
-                          <span className="text-gray-700 font-medium">{item.itemName}</span>
+                  <div key={i} className="bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
+                      <div className="flex justify-between items-start mb-2">
+                          <div className="flex gap-2">
+                              <span className="bg-primary/10 text-primary px-2 py-0.5 rounded text-sm font-bold h-fit">
+                                  {item.quantity}x
+                              </span>
+                              <span className="text-gray-900 font-bold text-sm">{item.itemName}</span>
+                          </div>
+                          <span className="font-bold text-gray-800 text-sm">£{item.itemTotal.toFixed(2)}</span>
                       </div>
-                      <span className="font-bold text-gray-800">£{item.itemTotal.toFixed(2)}</span>
+
+                      {/* Deep Customization Details */}
+                      {(item.selectedVariants?.length > 0 || item.selectedAddons?.length > 0) && (
+                          <div className="ml-8 text-xs space-y-2 border-l-2 border-gray-200 pl-3 py-1">
+                              
+                              {/* Variants */}
+                              {item.selectedVariants?.length > 0 && (
+                                  <div className="flex flex-wrap gap-1">
+                                      {item.selectedVariants.map((v, idx) => (
+                                          <span key={idx} className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-100">
+                                              {v.groupTitle || 'Option'}: <span className="font-semibold">{v.details?.variantName || v.variantId}</span>
+                                          </span>
+                                      ))}
+                                  </div>
+                              )}
+
+                              {/* Addons */}
+                              {item.selectedAddons?.length > 0 && (
+                                  <div>
+                                      <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider mb-1 block">Extras</span>
+                                      <ul className="grid grid-cols-2 gap-1">
+                                          {item.selectedAddons.map((a, idx) => (
+                                              <li key={idx} className="flex items-center gap-1.5 text-gray-600">
+                                                  <div className="w-1 h-1 bg-green-500 rounded-full"></div>
+                                                  {a.details?.optionTitle || a.addonId}
+                                              </li>
+                                          ))}
+                                      </ul>
+                                  </div>
+                              )}
+                          </div>
+                      )}
                   </div>
               ))}
-              <div className="flex justify-between pt-3 text-sm font-bold text-dark border-t border-gray-200">
-                  <span>Total</span>
-                  <span>£{order.pricing.totalAmount.toFixed(2)}</span>
+              
+              {/* Order Notes */}
+              {order.notes && (
+                  <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-100 flex gap-2">
+                      <ClipboardList className="w-4 h-4 text-yellow-600 mt-0.5" />
+                      <div>
+                          <span className="font-bold text-yellow-800 text-xs block mb-0.5">Customer Note:</span>
+                          <p className="text-xs text-yellow-700">{order.notes}</p>
+                      </div>
+                  </div>
+              )}
+
+              {/* Totals Breakdown */}
+              <div className="space-y-1 pt-3 border-t border-gray-200 text-xs text-gray-600">
+                  <div className="flex justify-between"><span>Subtotal</span><span>£{order.pricing.subtotal.toFixed(2)}</span></div>
+                  <div className="flex justify-between"><span>Delivery Fee</span><span>£{order.pricing.deliveryFee.toFixed(2)}</span></div>
+                  <div className="flex justify-between font-bold text-dark text-sm pt-2">
+                      <span>Total</span>
+                      <span>£{order.pricing.totalAmount.toFixed(2)}</span>
+                  </div>
               </div>
+
            </div>
         </div>
       </div>
