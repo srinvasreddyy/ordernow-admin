@@ -33,7 +33,7 @@ const registerSchema = z.object({
   latitude: z.coerce.number({ invalid_type_error: "Required (Use Detect Location)" }),
 
   handlingChargesPercentage: z.string().transform(val => parseFloat(val)),
-  stripeSecretKey: z.string().startsWith('sk_', "Must start with sk_"),
+  // REMOVED: stripeSecretKey validation
   freeDeliveryRadius: z.string().transform(val => parseFloat(val)),
   chargePerMile: z.string().transform(val => parseFloat(val)),
   maxDeliveryRadius: z.string().transform(val => parseFloat(val)),
@@ -55,7 +55,7 @@ const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'
 const STEPS = [
   { id: 'basic', title: 'Basic Info', fields: ['restaurantName', 'ownerFullName', 'email', 'password', 'phoneNumber', 'restaurantType'] },
   { id: 'location', title: 'Location', fields: ['shopNo', 'floor', 'city', 'area', 'landmark', 'latitude', 'longitude'] },
-  { id: 'financials', title: 'Financials & Delivery', fields: ['handlingChargesPercentage', 'stripeSecretKey', 'freeDeliveryRadius', 'chargePerMile', 'maxDeliveryRadius'] },
+  { id: 'financials', title: 'Financials & Delivery', fields: ['handlingChargesPercentage', 'freeDeliveryRadius', 'chargePerMile', 'maxDeliveryRadius'] }, // Removed stripeSecretKey
   { id: 'timings', title: 'Operating Hours', fields: ['timings'] },
   { id: 'documents', title: 'Docs & Banking', fields: ['businessLicenseNumber', 'foodHygieneCertificateNumber', 'vatNumber', 'beneficiaryName', 'sortCode', 'accountNumber', 'bankAddress'] }
 ];
@@ -122,7 +122,7 @@ export default function Register() {
 
       const simpleFields = [
         'restaurantName', 'ownerFullName', 'email', 'password', 'phoneNumber', 'restaurantType',
-        'handlingChargesPercentage', 'stripeSecretKey', 'businessLicenseNumber', 
+        'handlingChargesPercentage', 'businessLicenseNumber', // Removed stripeSecretKey
         'foodHygieneCertificateNumber', 'vatNumber', 'beneficiaryName', 'sortCode', 
         'accountNumber', 'bankAddress'
       ];
@@ -163,12 +163,20 @@ export default function Register() {
         }
       }
 
-      await api.post('/owner-registrations/register', formData, {
+      const response = await api.post('/owner-registrations/register', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 
-      toast.success("Application submitted successfully!");
-      navigate('/auth/login');
+      // --- NEW LOGIC: REDIRECT TO STRIPE ---
+      if (response.data.success && response.data.stripeOnboardingUrl) {
+          toast.success("Registration successful! Redirecting to Stripe for payment setup...");
+          setTimeout(() => {
+              window.location.href = response.data.stripeOnboardingUrl;
+          }, 1500);
+      } else {
+          toast.success("Application submitted successfully!");
+          navigate('/auth/login');
+      }
 
     } catch (error) {
       console.error(error);
@@ -241,7 +249,6 @@ export default function Register() {
 
           {/* Right Side: Form Wizard */}
           <div className="w-full lg:w-2/3 bg-white rounded-2xl shadow-card border border-gray-100 flex flex-col overflow-hidden">
-            {/* Mobile Progress Bar */}
             <div className="lg:hidden w-full bg-gray-100 h-1.5">
                <div className="bg-primary h-1.5 transition-all duration-300" style={{ width: `${((currentStep + 1) / STEPS.length) * 100}%` }} />
             </div>
@@ -271,7 +278,6 @@ export default function Register() {
                             </select>
                         </div>
                      </div>
-                     
                      <div className="mt-6 border-t border-gray-100 pt-6">
                         <label className="input-label mb-3 block">Profile Image</label>
                         <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:bg-gray-50 transition-colors">
@@ -314,10 +320,13 @@ export default function Register() {
                   <div className={clsx(currentStep === 2 ? 'block' : 'hidden', "space-y-5")}>
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <InputGroup label="Handling Charge (%)" name="handlingChargesPercentage" type="number" />
-                        <InputGroup label="Stripe Secret Key" name="stripeSecretKey" type="password" />
+                        {/* REMOVED: Stripe Secret Key Input */}
                         <InputGroup label="Free Delivery Radius (miles)" name="freeDeliveryRadius" type="number" />
                         <InputGroup label="Charge Per Mile (£)" name="chargePerMile" type="number" />
                         <InputGroup label="Max Delivery Radius (miles)" name="maxDeliveryRadius" type="number" />
+                     </div>
+                     <div className="bg-blue-50 p-4 rounded-lg text-sm text-blue-800 border border-blue-100 mt-2">
+                         <strong>Note:</strong> You will be asked to connect your Bank Account via Stripe in the next step after submission.
                      </div>
                   </div>
 
@@ -400,7 +409,7 @@ export default function Register() {
                         </button>
                     ) : (
                         <button type="submit" disabled={isSubmitting} className="btn-primary px-8 py-2.5 shadow-lg shadow-primary/30">
-                            {isSubmitting ? 'Submitting Application...' : 'Submit Application'}
+                            {isSubmitting ? 'Register & Connect Stripe' : 'Submit Application'}
                         </button>
                     )}
                   </div>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useAuth } from '../../context/AuthContext';
-import { Save, Store, Settings as SettingsIcon } from 'lucide-react';
+import { Save, Store, Settings as SettingsIcon, CreditCard, ExternalLink } from 'lucide-react';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
 import clsx from 'clsx';
@@ -10,6 +10,7 @@ export default function Settings() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
   const [isLoading, setIsLoading] = useState(true);
+  const [stripeStatus, setStripeStatus] = useState('pending'); // 'pending', 'active'
 
   const { register: registerProfile, handleSubmit: handleProfileSubmit, reset: resetProfile } = useForm();
   const { register: registerConfig, handleSubmit: handleConfigSubmit, reset: resetConfig } = useForm();
@@ -17,7 +18,6 @@ export default function Settings() {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        // FIX: Changed from `/restaurants/${user._id}` to `/restaurants/me`
         const { data } = await api.get('/restaurants/me');
         const r = data.data;
         
@@ -35,6 +35,10 @@ export default function Settings() {
           maxDeliveryRadius: r.deliverySettings?.maxDeliveryRadius,
           acceptsDining: r.acceptsDining,
         });
+
+        if (r.stripeAccountStatus) {
+            setStripeStatus(r.stripeAccountStatus);
+        }
         
         setIsLoading(false);
       } catch (error) {
@@ -44,7 +48,6 @@ export default function Settings() {
       }
     };
     
-    // Only fetch if we have a user, though /me relies on the cookie/token essentially
     if (user) fetchSettings();
   }, [user, resetProfile, resetConfig]);
 
@@ -67,13 +70,30 @@ export default function Settings() {
           maxDeliveryRadius: Number(data.maxDeliveryRadius),
         },
         acceptsDining: data.acceptsDining,
-        stripeSecretKey: data.stripeSecretKey || undefined
       };
       await api.put('/restaurants/settings', payload);
       toast.success("Settings updated");
     } catch (error) {
       toast.error("Update failed");
     }
+  };
+
+  const handleConnectStripe = async () => {
+      try {
+          const { data } = await api.post('/owner/stripe-connect/onboarding-link');
+          if (data.url) window.location.href = data.url;
+      } catch (error) {
+          toast.error("Failed to generate Stripe link");
+      }
+  };
+
+  const handleStripeLogin = async () => {
+      try {
+          const { data } = await api.post('/owner/stripe-connect/login-link');
+          if (data.url) window.open(data.url, '_blank');
+      } catch (error) {
+          toast.error("Failed to login to Stripe");
+      }
   };
 
   if (isLoading) return <div className="p-10 text-center text-secondary">Loading settings...</div>;
@@ -133,10 +153,42 @@ export default function Settings() {
             </form>
           ) : (
             <form onSubmit={handleConfigSubmit(onConfigSubmit)} className="space-y-6">
-              <div className="bg-orange-50 p-4 rounded-xl border border-orange-100 text-sm text-orange-800 mb-6 flex gap-3">
+              
+              {/* --- STRIPE SECTION START --- */}
+              <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                  <h3 className="text-lg font-bold text-dark flex items-center gap-2 mb-4">
+                      <CreditCard className="w-5 h-5 text-indigo-600"/> Payment Configuration (Stripe)
+                  </h3>
+                  <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                      <div>
+                          <p className="text-sm text-gray-600 mb-1">Status: 
+                              <span className={clsx(
+                                  "ml-2 font-bold px-2 py-0.5 rounded text-xs uppercase", 
+                                  stripeStatus === 'active' ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
+                              )}>
+                                  {stripeStatus}
+                              </span>
+                          </p>
+                          <p className="text-xs text-gray-400">Manage your payouts and bank details securely via Stripe.</p>
+                      </div>
+                      
+                      {stripeStatus === 'active' ? (
+                          <button type="button" onClick={handleStripeLogin} className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-black transition-colors text-sm font-semibold">
+                              View Payouts Dashboard <ExternalLink className="w-3 h-3"/>
+                          </button>
+                      ) : (
+                          <button type="button" onClick={handleConnectStripe} className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors text-sm font-semibold shadow-lg shadow-indigo-200">
+                              Continue Onboarding <ChevronRight className="w-3 h-3"/>
+                          </button>
+                      )}
+                  </div>
+              </div>
+              {/* --- STRIPE SECTION END --- */}
+
+              <div className="bg-orange-50 p-4 rounded-xl border border-orange-100 text-sm text-orange-800 flex gap-3">
                 <div className="w-1 bg-orange-400 rounded-full"></div>
                 <div>
-                    <strong>Important:</strong> Changes here affect live delivery calculations immediately.
+                    <strong>Important:</strong> Changes below affect live delivery calculations immediately.
                 </div>
               </div>
 
@@ -157,12 +209,7 @@ export default function Settings() {
                   <label className="input-label">Handling Charges (%)</label>
                   <input type="number" step="0.01" {...registerConfig('handlingChargesPercentage')} className="input-field" />
                 </div>
-                <div className="col-span-2">
-                  <label className="input-label">Stripe Secret Key</label>
-                  <input type="password" {...registerConfig('stripeSecretKey')} className="input-field" placeholder="••••••••••••••••" />
-                </div>
                 
-                {/* Only show Table Management toggle for Dining Restaurants */}
                 {user?.restaurantType === 'food_delivery_and_dining' && (
                   <div className="col-span-2 border-t border-gray-100 pt-6">
                       <h4 className="text-sm font-bold text-dark mb-4">Operational Features</h4>
