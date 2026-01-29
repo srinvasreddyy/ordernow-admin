@@ -8,6 +8,9 @@ import api from '../../api/axios';
 import toast from 'react-hot-toast';
 import clsx from 'clsx';
 
+// Environment variable to check if global online payments are enabled
+const GLOBAL_ONLINE_PAYMENTS_ENABLED = import.meta.env.VITE_ENABLE_ONLINE_PAYMENTS === 'true';
+
 // --- Schema Definition ---
 const timeSlotSchema = z.object({
   day: z.string(),
@@ -34,6 +37,7 @@ const registerSchema = z.object({
 
   handlingChargesPercentage: z.string().transform(val => parseFloat(val)),
   // REMOVED: stripeSecretKey validation
+  acceptsOnlineOrders: z.boolean().optional(),
   freeDeliveryRadius: z.string().transform(val => parseFloat(val)),
   chargePerMile: z.string().transform(val => parseFloat(val)),
   maxDeliveryRadius: z.string().transform(val => parseFloat(val)),
@@ -55,7 +59,7 @@ const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'
 const STEPS = [
   { id: 'basic', title: 'Basic Info', fields: ['restaurantName', 'ownerFullName', 'email', 'password', 'phoneNumber', 'restaurantType'] },
   { id: 'location', title: 'Location', fields: ['shopNo', 'floor', 'city', 'area', 'landmark', 'latitude', 'longitude'] },
-  { id: 'financials', title: 'Financials & Delivery', fields: ['handlingChargesPercentage', 'freeDeliveryRadius', 'chargePerMile', 'maxDeliveryRadius'] }, // Removed stripeSecretKey
+  { id: 'financials', title: 'Financials & Delivery', fields: ['handlingChargesPercentage', 'acceptsOnlineOrders', 'freeDeliveryRadius', 'chargePerMile', 'maxDeliveryRadius'] }, // Removed stripeSecretKey
   { id: 'timings', title: 'Operating Hours', fields: ['timings'] },
   { id: 'documents', title: 'Docs & Banking', fields: ['businessLicenseNumber', 'foodHygieneCertificateNumber', 'vatNumber', 'beneficiaryName', 'sortCode', 'accountNumber', 'bankAddress'] }
 ];
@@ -66,14 +70,16 @@ export default function Register() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
 
-  const { register, control, handleSubmit, trigger, setValue, formState: { errors } } = useForm({
+  const { register, control, handleSubmit, trigger, setValue, watch, formState: { errors } } = useForm({
     resolver: zodResolver(registerSchema),
     mode: 'onChange',
     defaultValues: {
+      acceptsOnlineOrders: false,
       timings: DAYS.map(day => ({ day, isOpen: true, openTime: "09:00", closeTime: "22:00" }))
     }
   });
 
+  const acceptsOnlineOrdersValue = watch('acceptsOnlineOrders');
   const { fields: timingFields } = useFieldArray({ control, name: "timings" });
 
   const handleGetLocation = () => {
@@ -122,11 +128,15 @@ export default function Register() {
 
       const simpleFields = [
         'restaurantName', 'ownerFullName', 'email', 'password', 'phoneNumber', 'restaurantType',
-        'handlingChargesPercentage', 'businessLicenseNumber', // Removed stripeSecretKey
+        'handlingChargesPercentage', 'businessLicenseNumber', 
         'foodHygieneCertificateNumber', 'vatNumber', 'beneficiaryName', 'sortCode', 
         'accountNumber', 'bankAddress'
       ];
       simpleFields.forEach(field => formData.append(field, data[field]));
+
+      // Only append if true AND enabled globally
+      const finalAcceptsOnlineOrders = GLOBAL_ONLINE_PAYMENTS_ENABLED && data.acceptsOnlineOrders;
+      formData.append('acceptsOnlineOrders', finalAcceptsOnlineOrders);
 
       const addressObj = {
         shopNo: data.shopNo,
@@ -320,13 +330,36 @@ export default function Register() {
                   <div className={clsx(currentStep === 2 ? 'block' : 'hidden', "space-y-5")}>
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <InputGroup label="Handling Charge (%)" name="handlingChargesPercentage" type="number" />
-                        {/* REMOVED: Stripe Secret Key Input */}
+                        {/* Accept Online Orders Checkbox */}
+                        <div className="md:col-span-2 bg-gray-50 p-4 rounded-xl border border-gray-200">
+                           <label className={clsx("flex items-start gap-3 cursor-pointer", !GLOBAL_ONLINE_PAYMENTS_ENABLED && "opacity-50 grayscale cursor-not-allowed")}>
+                                <input 
+                                    type="checkbox" 
+                                    {...register('acceptsOnlineOrders')} 
+                                    disabled={!GLOBAL_ONLINE_PAYMENTS_ENABLED}
+                                    className="mt-1 w-5 h-5 rounded text-primary focus:ring-primary/25 border-gray-300" 
+                                />
+                                <div>
+                                    <span className="font-bold text-dark block">Accept Online Payments</span>
+                                    <span className="text-xs text-secondary block mt-0.5">
+                                        {GLOBAL_ONLINE_PAYMENTS_ENABLED 
+                                            ? "If checked, you will be redirected to Stripe to setup your payout account after registration."
+                                            : "Online payments are currently disabled by the platform administrator."}
+                                    </span>
+                                </div>
+                           </label>
+                        </div>
+
                         <InputGroup label="Free Delivery Radius (miles)" name="freeDeliveryRadius" type="number" />
                         <InputGroup label="Charge Per Mile (£)" name="chargePerMile" type="number" />
                         <InputGroup label="Max Delivery Radius (miles)" name="maxDeliveryRadius" type="number" />
                      </div>
                      <div className="bg-blue-50 p-4 rounded-lg text-sm text-blue-800 border border-blue-100 mt-2">
-                         <strong>Note:</strong> You will be asked to connect your Bank Account via Stripe in the next step after submission.
+                         {acceptsOnlineOrdersValue && GLOBAL_ONLINE_PAYMENTS_ENABLED ? (
+                             <strong>Note: You will be asked to connect your Bank Account via Stripe in the next step.</strong>
+                         ) : (
+                             <strong>Note: Your account will be created as "Cash on Delivery" only.</strong>
+                         )}
                      </div>
                   </div>
 
@@ -409,7 +442,7 @@ export default function Register() {
                         </button>
                     ) : (
                         <button type="submit" disabled={isSubmitting} className="btn-primary px-8 py-2.5 shadow-lg shadow-primary/30">
-                            {isSubmitting ? 'Register & Connect Stripe' : 'Submit Application'}
+                            {isSubmitting ? (acceptsOnlineOrdersValue && GLOBAL_ONLINE_PAYMENTS_ENABLED ? 'Register & Connect Stripe' : 'Submit Application') : 'Submit Application'}
                         </button>
                     )}
                   </div>

@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Menu, Bell, ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import { Menu, Bell, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
@@ -40,12 +40,6 @@ export default function Header({ toggleSidebar, toggleMobileMenu, isSidebarOpen 
         >
           <Menu className="w-6 h-6" />
         </button>
-        
-        {/* Search Bar (Visual Only) */}
-        <div className="hidden md:flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200 w-64">
-            <Search className="w-4 h-4 text-gray-400" />
-            <input type="text" placeholder="Search..." className="bg-transparent border-none text-sm focus:ring-0 text-dark w-full p-0" />
-        </div>
       </div>
 
       <div className="flex items-center gap-4 md:gap-6">

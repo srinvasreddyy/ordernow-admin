@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useAuth } from '../../context/AuthContext';
-import { Save, Store, Settings as SettingsIcon, CreditCard, ExternalLink } from 'lucide-react';
+import { Save, Store, Settings as SettingsIcon, CreditCard, ExternalLink, ChevronRight } from 'lucide-react';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
 import clsx from 'clsx';

@@ -35,11 +35,14 @@ export default function Orders() {
   });
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)] space-y-4">
+    <div className="flex flex-col space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-dark">Orders</h1>
-        <button onClick={() => refetch()} className={clsx("p-2 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-secondary transition-all", isRefetching && "animate-spin text-primary")}>
-          <RefreshCw className="w-5 h-5" />
+        <button 
+          onClick={() => refetch()} 
+          className="p-2 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-secondary transition-all"
+        >
+          <RefreshCw className={clsx("w-5 h-5", isRefetching && "animate-spin text-primary")} />
         </button>
       </div>
 
@@ -59,16 +62,16 @@ export default function Orders() {
         ))}
       </div>
 
-      <div className="flex-1 overflow-y-auto pb-10 pr-1">
+      <div className="min-h-[500px]">
         {isLoading ? (
           <div className="flex items-center justify-center h-64 text-secondary">Loading orders...</div>
         ) : !orders?.length ? (
-          <div className="flex flex-col items-center justify-center h-full text-secondary animate-scale-in">
+          <div className="flex flex-col items-center justify-center h-64 text-secondary animate-scale-in">
             <Inbox className="w-12 h-12 text-gray-300 mb-2" />
             <p>No orders in this stage</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 pb-10">
             {orders.map((order, i) => (
               <div key={order._id} style={{ animationDelay: `${i * 50}ms` }} className="animate-slide-up">
                 <OrderCard order={order} activeTab={activeTab} onAssignDriver={() => setSelectedOrderForDriver(order)} refetch={refetch} />
