@@ -6,11 +6,36 @@ import OrderCard from './components/OrderCard';
 import AssignDriverModal from './components/AssignDriverModal';
 import clsx from 'clsx';
 
+// UPDATED TABS: "Preparing" now explicitly asks for 'preparing' and 'ready_for_pickup'
 const TABS = [
-  { id: 'new', label: 'New', icon: AlertCircle, status: 'placed', acceptanceStatus: 'pending' },
-  { id: 'preparing', label: 'Preparing', icon: ChefHat, status: 'placed', acceptanceStatus: 'accepted' },
-  { id: 'out_for_delivery', label: 'Delivery', icon: Truck, status: 'out_for_delivery', acceptanceStatus: 'accepted' },
-  { id: 'past', label: 'Completed', icon: CheckCircle2, status: 'delivered', acceptanceStatus: 'accepted' },
+  { 
+      id: 'new', 
+      label: 'New', 
+      icon: AlertCircle, 
+      status: 'placed', 
+      acceptanceStatus: 'pending' 
+  },
+  { 
+      id: 'preparing', 
+      label: 'Preparing', 
+      icon: ChefHat, 
+      status: 'preparing,ready_for_pickup', // Fetches both statuses
+      acceptanceStatus: 'accepted' 
+  },
+  { 
+      id: 'out_for_delivery', 
+      label: 'Delivery', 
+      icon: Truck, 
+      status: 'out_for_delivery', 
+      acceptanceStatus: 'accepted' 
+  },
+  { 
+      id: 'past', 
+      label: 'Completed', 
+      icon: CheckCircle2, 
+      status: 'delivered,cancelled,refunded', 
+      acceptanceStatus: 'accepted' 
+  },
 ];
 
 export default function Orders() {
@@ -22,11 +47,11 @@ export default function Orders() {
     queryFn: async () => {
       const currentTab = TABS.find(t => t.id === activeTab);
       const params = { limit: 50 };
-      if (activeTab === 'past') params.status = 'delivered'; 
-      else {
-        if (currentTab.status) params.status = currentTab.status;
-        if (currentTab.acceptanceStatus) params.acceptanceStatus = currentTab.acceptanceStatus;
-      }
+      
+      // Use the statuses defined in the TABS object
+      if (currentTab.status) params.status = currentTab.status;
+      if (currentTab.acceptanceStatus) params.acceptanceStatus = currentTab.acceptanceStatus;
+      
       const endpoint = activeTab === 'new' ? '/orders/restaurant/new' : '/orders/restaurant';
       const { data } = await api.get(endpoint, { params });
       return data.data;

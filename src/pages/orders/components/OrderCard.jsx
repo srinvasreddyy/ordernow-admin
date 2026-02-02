@@ -51,6 +51,11 @@ export default function OrderCard({ order, activeTab, onAssignDriver, refetch })
       const options = [];
       if (currentStatus === 'placed') {
           options.push('out_for_delivery', 'delivered', 'cancelled');
+      } else if (currentStatus === 'preparing') {
+          // Allow moving from preparing to next stages
+          options.push('ready_for_pickup', 'out_for_delivery', 'delivered', 'cancelled');
+      } else if (currentStatus === 'ready_for_pickup') {
+          options.push('delivered', 'cancelled');
       } else if (currentStatus === 'out_for_delivery') {
           options.push('delivered', 'cancelled');
       }
@@ -144,7 +149,7 @@ export default function OrderCard({ order, activeTab, onAssignDriver, refetch })
                 <div className="flex flex-col gap-2 animate-fade-in">
                     
                     {/* Assign Driver Button (Only for Delivery type orders that are not yet out) */}
-                    {order.orderType === 'delivery' && order.status === 'placed' && (
+                    {order.orderType === 'delivery' && (order.status === 'placed' || order.status === 'preparing') && (
                         <button 
                             onClick={onAssignDriver}
                             className="flex items-center justify-center gap-2 w-full btn-primary bg-dark hover:bg-black text-xs py-2.5 transition-all shadow-sm"
