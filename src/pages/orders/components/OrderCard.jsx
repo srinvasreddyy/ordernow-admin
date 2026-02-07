@@ -64,6 +64,12 @@ export default function OrderCard({ order, activeTab, onAssignDriver, refetch })
 
   const availableStatuses = getAvailableStatusOptions(order.status);
 
+  // Robust Address Display with Fallback
+  // Checks for 'fullAddress' first, then falls back to 'addressLine1', then a default message.
+  const displayAddress = order.deliveryAddress?.fullAddress || 
+                         order.deliveryAddress?.addressLine1 || 
+                         "Address details not available";
+
   return (
     <div className="card-base group flex flex-col h-full hover:border-primary/30 transition-all duration-200">
       {/* Header */}
@@ -105,7 +111,7 @@ export default function OrderCard({ order, activeTab, onAssignDriver, refetch })
                 <MapPin className="w-4 h-4" />
             </div>
             <span className="text-sm text-gray-600 line-clamp-2 leading-relaxed flex-1 mt-1">
-                {order.deliveryAddress?.fullAddress}
+                {displayAddress}
             </span>
         </div>
 

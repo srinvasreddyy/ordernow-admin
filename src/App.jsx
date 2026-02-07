@@ -5,6 +5,8 @@ import GlobalLoader from './components/ui/GlobalLoader';
 // Pages
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
+import RegistrationSuccess from './pages/auth/RegistrationSuccess'; // NEW IMPORT
+import OnboardingGuide from './pages/guide/OnboardingGuide'; // NEW IMPORT
 import { OnboardingRefresh, OnboardingComplete } from './pages/auth/StripeOnboarding';
 import Layout from './components/layout/Layout';
 import Dashboard from './pages/dashboard/Dashboard';
@@ -20,41 +22,21 @@ import Settings from './pages/settings/Settings';
 
 // --- ROUTE GUARDS ---
 
-/**
- * Protects routes that require authentication.
- * Redirects to Login if user is not authenticated.
- */
 const ProtectedRoute = () => {
   const { user, loading } = useAuth();
   const location = useLocation();
-
-  if (loading) return null; // Wait for auth check to complete
-
-  return user ? (
-    <Outlet /> 
-  ) : (
-    <Navigate to="/auth/login" state={{ from: location }} replace />
-  );
+  if (loading) return null;
+  return user ? <Outlet /> : <Navigate to="/auth/login" state={{ from: location }} replace />;
 };
 
-/**
- * Restricts access to public pages (Login/Register) if user is already logged in.
- * Redirects to Dashboard if authenticated.
- */
 const PublicOnlyRoute = ({ children }) => {
   const { user, loading } = useAuth();
-
   if (loading) return null;
-
   return !user ? children : <Navigate to="/" replace />;
 };
 
-/**
- * Restricts access based on Restaurant Type.
- */
 const DiningRoute = ({ children }) => {
   const { user } = useAuth();
-  // Ensure user exists before checking type, though ProtectedRoute handles the null user
   if (user && user.restaurantType !== 'food_delivery_and_dining') {
     return <Navigate to="/" replace />;
   }
@@ -75,20 +57,26 @@ function App() {
     <>
     <GlobalLoader />
     <Routes>
-      {/* --- PUBLIC ROUTES (Accessible only when logged out) --- */}
+      {/* --- PUBLIC ROUTES --- */}
       <Route path="/auth/login" element={
         <PublicOnlyRoute><Login /></PublicOnlyRoute>
       } />
       <Route path="/auth/register" element={
         <PublicOnlyRoute><Register /></PublicOnlyRoute>
       } />
+      
+      {/* GUIDE (Public) */}
+      <Route path="/guide" element={<OnboardingGuide />} />
 
-      {/* --- STRIPE ONBOARDING (Hybrid/Public) --- */}
+      {/* --- STRIPE ONBOARDING --- */}
       <Route path="/onboarding-refresh" element={<OnboardingRefresh />} />
       <Route path="/onboarding-complete" element={<OnboardingComplete />} />
 
-      {/* --- PROTECTED ROUTES (Accessible only when logged in) --- */}
+      {/* --- PROTECTED ROUTES --- */}
       <Route element={<ProtectedRoute />}>
+        {/* SUCCESS PAGE (Requires Auth because user is auto-logged in) */}
+        <Route path="/auth/success" element={<RegistrationSuccess />} />
+
         <Route element={<Layout />}>
           <Route path="/" element={<Dashboard />} />
           <Route path="/performance" element={<Performance />} />
@@ -97,7 +85,6 @@ function App() {
           <Route path="/menu/add" element={<AddEditMenu />} />
           <Route path="/menu/edit/:id" element={<AddEditMenu />} />
           
-          {/* Role-Specific Routes */}
           <Route path="/tables" element={<DiningRoute><Tables /></DiningRoute>} />
           <Route path="/bookings" element={<DiningRoute><Bookings /></DiningRoute>} />
           
