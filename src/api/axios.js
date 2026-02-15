@@ -3,9 +3,11 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import { showLoader, hideLoader } from '../utils/loaderEvent';
 import { MOCK_DATA } from './mockData';
+let baseURL ='http://localhost:3000/api'; // Ensure this matches your backend URL
+// let baseURL ='https://api.loksar.co.uk/api'; // Ensure this matches your backend URL
 
 const api = axios.create({
-  baseURL: 'http://localhost:3000/api', // Ensure this matches your backend URL
+  baseURL: baseURL, // Ensure this matches your backend URL
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
