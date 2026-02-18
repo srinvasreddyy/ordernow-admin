@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { RefreshCw, ChefHat, Truck, CheckCircle2, AlertCircle, Inbox } from 'lucide-react';
+import { RefreshCw, ChefHat, Truck, CheckCircle2, AlertCircle, Inbox, XCircle } from 'lucide-react';
 import api from '../../api/axios';
 import OrderCard from './components/OrderCard';
 import AssignDriverModal from './components/AssignDriverModal';
 import clsx from 'clsx';
 
-// UPDATED TABS: "Preparing" now explicitly asks for 'preparing' and 'ready_for_pickup'
+// UPDATED TABS: Added 'Cancelled' tab and cleaned up 'Completed'
 const TABS = [
   { 
       id: 'new', 
@@ -33,8 +33,17 @@ const TABS = [
       id: 'past', 
       label: 'Completed', 
       icon: CheckCircle2, 
-      status: 'delivered,cancelled,refunded', 
+      status: 'delivered', // Only show successfully delivered orders here
       acceptanceStatus: 'accepted' 
+  },
+  { 
+      id: 'cancelled', 
+      label: 'Cancelled', 
+      icon: XCircle, 
+      status: 'cancelled,refunded,rejected', // Catch all failed/rejected orders
+      // Note: We intentionally omit acceptanceStatus here to fetch both 
+      // rejected orders (acceptanceStatus: rejected) and 
+      // cancelled orders (acceptanceStatus: accepted/pending but status: cancelled)
   },
 ];
 
